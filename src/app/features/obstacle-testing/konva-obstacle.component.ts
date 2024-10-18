@@ -339,6 +339,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     rect.moveToTop();
 
     this.updateDeleteIconPosition(rect);
+    this.currentRect = rect;
+    
     this.layer.draw();
   }
 
@@ -541,6 +543,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
     this.updateDeleteIconPosition(rect);
     rect.draggable(true);
+
     this.currentRect = rect;
     this.currentId = obstacleId
 

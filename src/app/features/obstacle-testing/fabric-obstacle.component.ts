@@ -558,10 +558,12 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     }
 
     this.canvas.discardActiveObject();
-    this.currentId = obstacleId
-    this.currentRect = rect;
-
     this.canvas.setActiveObject(rect);
+
+    this.updateDeleteIconPosition(rect);
+    this.currentRect = rect;
+    this.currentId = obstacleId
+
     this.canvas.renderAll();
   }
 
