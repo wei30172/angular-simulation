@@ -1,0 +1,45 @@
+<!-- Zoom Controls -->
+<app-zoom-controls 
+  (zoomIn)="zoomIn()" 
+  (zoomOut)="zoomOut()" 
+  (moveUp)="moveUp()" 
+  (moveLeft)="moveLeft()" 
+  (moveRight)="moveRight()" 
+  (moveDown)="moveDown()" 
+  (resetZoom)="resetZoom()">
+</app-zoom-controls>
+
+<div class="canvas-container">
+  <app-delete-icon 
+    *ngIf="showDeleteIcon" 
+    [deleteIconStyle]="deleteIconStyle" 
+    (deleteObstacle)="deleteObstacle()">
+  </app-delete-icon>
+
+  <!-- Fabric Canvas -->
+  <canvas
+    id="fabricCanvas"
+    width="800"
+    height="800"
+    style="border: 1px solid black; width: 100%; height: auto;"
+  ></canvas>
+
+  <!-- Obstacle Canvas -->
+  <app-obstacle-list 
+    [obstacleList]="obstacleList" 
+    (selectObstacle)="selectObstacle($event)"
+    (deleteObstacle)="deleteObstacle($event)">
+  </app-obstacle-list>
+</div>
+
+<!-- Popup Overlay Component -->
+<app-popup-overlay *ngIf="showPopup" (close)="closeEditForm()"></app-popup-overlay>
+
+<!-- Edit Form Component -->
+<app-edit-form
+  *ngIf="showPopup"
+  [formGroup]="obstacleForm"
+  (close)="closeEditForm()"
+  (submit)="submitEditForm()"
+  (reset)="cancelEditForm()"
+></app-edit-form>

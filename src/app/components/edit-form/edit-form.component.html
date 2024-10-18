@@ -1,0 +1,30 @@
+<div class="edit-form" (mousedown)="onDragStart($event)">
+  <button class="close-button" (click)="onClose()">&times;</button>
+  <h3>Edit Obstacle</h3>
+  <form [formGroup]="formGroup">
+    <div class="form-group">
+      <label for="x">X Position:</label>
+      <input type="number" formControlName="x" />
+    </div>
+    <div class="form-group">
+      <label for="y">Y Position:</label>
+      <input type="number" formControlName="y" />
+    </div>
+    <div class="form-group">
+      <label for="width">Width:</label>
+      <input type="number" formControlName="width" />
+    </div>
+    <div class="form-group">
+      <label for="height">Height:</label>
+      <input type="number" formControlName="height" />
+    </div>
+    <div class="form-group">
+      <label for="color">Color:</label>
+      <input type="text" formControlName="color" />
+    </div>
+    <div class="button-group">
+      <button type="button" (click)="onReset()">Reset</button>
+      <button type="button" (click)="onSubmit()">Confirm</button>
+    </div>
+  </form>
+</div>

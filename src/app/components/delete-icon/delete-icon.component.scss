@@ -1,0 +1,19 @@
+.delete-icon {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  border-radius: 50%;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    background-color: darkred;
+  }
+}
