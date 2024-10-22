@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "preinstall": "npm install --legacy-peer-deps || exit 0",
     "start": "export NODE_OPTIONS=--openssl-legacy-provider && ng serve",
     "build": "ng build",
     "test": "ng test",
