@@ -1,5 +1,5 @@
-<app-sidebar></app-sidebar>
+<app-sidebar [sidebarOpen]="sidebarOpen" (toggle)="toggleSidebar()"></app-sidebar>
 
-<div class="content" role="main">
+<div class="content" [class.sidebar-open]="sidebarOpen" role="main">
   <router-outlet></router-outlet>
 </div>

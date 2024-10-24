@@ -2,18 +2,18 @@
   display: flex;
 }
 
-app-sidebar {
-  width: 200px;
-  background-color: #f4f4f4;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  overflow-y: auto;
-}
-
 .content {
-  margin-left: 220px;
+  box-sizing: border-box;
+  transition: margin-left 0.3s ease, width 0.3s ease;
   padding: 20px;
-  width: calc(100% - 220px);
+
+  &.sidebar-open {
+    margin-left: 240px;
+    width: calc(100% - 240px);
+  }
+
+  &:not(.sidebar-open) {
+    margin-left: 0;
+    width: 100%;
+  }
 }

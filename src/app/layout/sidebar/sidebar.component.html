@@ -1,4 +1,10 @@
-<div class="sidebar">
+<button class="menu-icon" *ngIf="!sidebarOpen" (click)="toggleSidebar()">
+  &#9776;
+</button>
+
+<div class="sidebar" [class.closed]="!sidebarOpen">
+  <button class="close-btn" (click)="toggleSidebar()">✖</button>
+
   <h3>模擬問題</h3>
   <ul>
     <li>
