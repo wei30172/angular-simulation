@@ -39,9 +39,9 @@ export class ObstacleService {
         height: randomHeight,
         color: this.getRandomColor(),
       };
-
-      this.obstaclesSubject.next(obstacles);
     }
+
+    this.obstaclesSubject.next(obstacles);
   }
 
   // Generate a random color in hexadecimal format

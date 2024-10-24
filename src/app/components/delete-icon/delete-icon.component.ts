@@ -7,5 +7,10 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 })
 export class DeleteIconComponent {
   @Input() deleteIconStyle = {};
-  @Output() deleteObstacle = new EventEmitter<void>();
+  @Input() obstacleId: number;
+  @Output() deleteObstacle = new EventEmitter<number>();
+
+  onDelete() {
+    this.deleteObstacle.emit(this.obstacleId);
+  }
 }

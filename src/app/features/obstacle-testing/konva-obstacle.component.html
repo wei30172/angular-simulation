@@ -13,7 +13,8 @@
   <app-delete-icon 
     *ngIf="showDeleteIcon" 
     [deleteIconStyle]="deleteIconStyle" 
-    (deleteObstacle)="deleteObstacle(currentId)">
+    [obstacleId]="currentId" 
+    (deleteObstacle)="deleteObstacle($event)">
   </app-delete-icon>
 
   <!-- Konva Canvas Container -->

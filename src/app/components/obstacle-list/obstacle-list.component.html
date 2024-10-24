@@ -1,7 +1,7 @@
 <div class="obstacle-list">
-  <h3>Obstacle List</h3>
+  <h3>Obstacle List: {{ obstacleList.length }} </h3>
   <ul>
-    <li *ngFor="let obstacle of obstacleList"  (click)="onSelectObstacle(obstacle.id)">
+    <li *ngFor="let obstacle of obstacleList.slice().reverse()"  (click)="onSelectObstacle(obstacle.id)">
       <span class="color-box" [ngStyle]="{'background-color': obstacle.color}"></span>
       Obstacle {{ obstacle.id }}
       <button class="delete-btn" (click)="onDeleteObstacle(obstacle.id)">

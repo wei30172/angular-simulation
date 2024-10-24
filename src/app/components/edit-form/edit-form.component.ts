@@ -7,7 +7,7 @@ import { FormGroup } from '@angular/forms';
   styleUrls: ['./edit-form.component.scss']
 })
 export class EditFormComponent {
-  @Input() formGroup: FormGroup; // Pass in the form group from the parent
+  @Input() formGroup: FormGroup;
   @Output() close = new EventEmitter<void>();
   @Output() submit = new EventEmitter<void>();
   @Output() reset = new EventEmitter<void>();
