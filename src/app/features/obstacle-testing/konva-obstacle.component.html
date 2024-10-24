@@ -10,6 +10,7 @@
 </app-zoom-controls>
 
 <div class="canvas-container">
+  <!-- Delete Icon -->
   <app-delete-icon 
     *ngIf="showDeleteIcon" 
     [deleteIconStyle]="deleteIconStyle" 
@@ -17,13 +18,13 @@
     (deleteObstacle)="deleteObstacle($event)">
   </app-delete-icon>
 
-  <!-- Konva Canvas Container -->
+  <!-- Konva Canvas -->
   <div
     id="konvaCanvas"
-    style="border: 1px solid black; width: 100%; height: auto; display: block; width: 800px; height: 800px;"
+    style="border: 1px solid black; width: 100%; height: auto; display: block; width: 640px; height: 640px;"
   ></div>
 
-  <!-- Obstacle Canvas -->
+  <!-- Obstacle List -->
   <app-obstacle-list 
     [obstacleList]="obstacleList" 
     (selectObstacle)="selectObstacle($event)"

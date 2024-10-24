@@ -10,6 +10,7 @@
 </app-zoom-controls>
 
 <div class="canvas-container">
+  <!-- Delete Icon -->
   <app-delete-icon 
     *ngIf="showDeleteIcon" 
     [deleteIconStyle]="deleteIconStyle" 
@@ -20,12 +21,12 @@
   <!-- Fabric Canvas -->
   <canvas
     id="fabricCanvas"
-    width="800"
-    height="800"
+    width="640"
+    height="640"
     style="border: 1px solid black; width: 100%; height: auto;"
   ></canvas>
 
-  <!-- Obstacle Canvas -->
+  <!-- Obstacle List -->
   <app-obstacle-list 
     [obstacleList]="obstacleList" 
     (selectObstacle)="selectObstacle($event)"

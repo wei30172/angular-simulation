@@ -27,8 +27,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   private originalValues: Obstacle | null = null;
   private startX: number | null = null;
   private startY: number | null = null;
-  private canvasWidth: number = 800;
-  private canvasHeight: number = 800;
+  private canvasWidth: number = 640;
+  private canvasHeight: number = 640;
   private isDragging = false;
   private isDrawing = false;
   private obstacleMap: Map<number, Konva.Rect> = new Map();
