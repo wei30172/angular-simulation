@@ -13,13 +13,21 @@ import { Obstacle } from './obstacle.model';
   styleUrls: ['./obstacle.component.scss']
 })
 export class KonvaObstacleComponent implements OnInit, OnDestroy {
+  // Constants for canvas behavior
+  private readonly DEFAULT_COLOR = '#00FFFF';
+  private readonly OBSTACLE_COUNT = 20;
+  private readonly MIN_ZOOM = 1;
+  private readonly MAX_ZOOM = 20;
+  private readonly PAN_OFFSET = 10;
+  private readonly MIN_DRAG_DISTANCE = 5;
+
   obstacleList: Obstacle[] = [];
   obstacleForm: FormGroup;
   showPopup = false;
   showDeleteIcon = false;
   deleteIconStyle = {};
   currentId: number | null = null;
-
+  
   private stage: Konva.Stage;
   private layer: Konva.Layer;
   private transformer: Konva.Transformer;
@@ -33,14 +41,6 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   private isDrawing = false;
   private obstacleMap: Map<number, Konva.Rect> = new Map();
   private destroy$ = new Subject<void>();
-  
-  // Constants for canvas behavior
-  private readonly DEFAULT_COLOR = '#00FFFF';
-  private readonly OBSTACLE_COUNT = 20;
-  private readonly MIN_ZOOM = 1;
-  private readonly MAX_ZOOM = 20;
-  private readonly PAN_OFFSET = 10;
-  private readonly MIN_DRAG_DISTANCE = 5;
   
   constructor(
     private obstacleService: ObstacleService,
@@ -109,7 +109,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
       this.layer.add(konvaImage);
       this.layer.draw();
 
-       // Generate random obstacles (rectangles)
+      // Generate default obstacles
       this.obstacleService.generateRandomObstacles(
         this.OBSTACLE_COUNT,
         this.stage.width(),
@@ -450,7 +450,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
       y: obstacle.y,
       width: obstacle.width,
       height: obstacle.height,
-      fill: obstacle.color,
+      fill: obstacle.color || this.DEFAULT_COLOR,
       draggable: true, // Allow dragging the rectangle
     });
 

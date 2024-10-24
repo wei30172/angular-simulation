@@ -13,6 +13,14 @@ import { Obstacle } from './obstacle.model';
   styleUrls: ['./obstacle.component.scss']
 })
 export class FabricObstacleComponent implements OnInit, OnDestroy {
+  // Constants for canvas behavior
+  private readonly DEFAULT_COLOR = '#00FFFF';
+  private readonly OBSTACLE_COUNT = 20;
+  private readonly MIN_ZOOM = 1;
+  private readonly MAX_ZOOM = 20;
+  private readonly PAN_OFFSET = 10;
+  private readonly MIN_DRAG_DISTANCE = 5;
+  
   obstacleList: Obstacle[] = [];
   obstacleForm: FormGroup;
   showPopup = false;
@@ -29,14 +37,6 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   private isDrawing = false;
   private obstacleMap: Map<number, fabric.Rect> = new Map();
   private destroy$ = new Subject<void>()
-
-  // Constants for canvas behavior
-  private readonly DEFAULT_COLOR = '#00FFFF';
-  private readonly OBSTACLE_COUNT = 20;
-  private readonly MIN_ZOOM = 1;
-  private readonly MAX_ZOOM = 20;
-  private readonly PAN_OFFSET = 10;
-  private readonly MIN_DRAG_DISTANCE = 5;
   
   constructor(
     private obstacleService: ObstacleService,
@@ -84,7 +84,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
         img.scaleToWidth(this.canvas.width);
         this.canvas.setBackgroundImage(img, this.canvas.renderAll.bind(this.canvas));
         
-        // Generate the initial set of obstacles
+        // Generate default obstacles
         this.obstacleService.generateRandomObstacles(
           this.OBSTACLE_COUNT,
           this.canvas.width,
