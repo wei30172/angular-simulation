@@ -221,7 +221,6 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     if (!pointer) return;
 
     this.isDrawing = true;
-
     this.startX = pointer.x;
     this.startY = pointer.y;
     this.currentRect = null;
@@ -288,6 +287,9 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     } else {
       this.currentRect.destroy();  // Remove invalid rectangles
     }
+
+    this.startX = null;
+    this.startY = null;
   }
   
   // Finalize a new rectangle as an obstacle
@@ -320,9 +322,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     const wheelEvent = event.evt as WheelEvent;
     wheelEvent.preventDefault();
   
+    // Adjust zoom level
     this.adjustMouseWheelZoom(wheelEvent);
-
-    
   }
 
   // Adjust zoom level based on mouse wheel interaction

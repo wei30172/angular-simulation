@@ -234,6 +234,12 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Deselect any previously selected object
+    if (this.currentRect) {
+      this.handleDeselection();
+      return
+    }
+    
     // Start drawing a new rectangle
     this.initiateDrawing(event);
   }
@@ -315,9 +321,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     } else {
       this.canvas.remove(this.currentRect);  // Remove invalid rectangles
     }
-
-    this.canvas.renderAll();
-    this.currentRect = null;
+    
     this.startX = null;
     this.startY = null;
   }
@@ -354,6 +358,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     });
 
     this.obstacleMap.set(newObstacleId, this.currentRect);
+    this.selectAndUpdateRect(this.currentRect);
   }
 
   // Toggle the selectable state of canvas objects
@@ -369,7 +374,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     const wheelEvent = event.e as WheelEvent;
     wheelEvent.stopPropagation();
 
-    // The value 0.999 ** delta smooths the zooming effect
+    // Adjust zoom level: the value 0.999 ** delta smooths the zooming effect
     this.adjustMouseWheelZoom(0.999 ** wheelEvent.deltaY, wheelEvent);
   }
 
