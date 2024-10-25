@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'angular-simulation';
-  sidebarOpen = true;
+  sidebarOpen = false;
 
   toggleSidebar() {
     this.sidebarOpen = !this.sidebarOpen;

@@ -4,7 +4,9 @@ import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { fabric } from 'fabric';
 
-import { ObstacleService } from '../../services/obstacle.service';
+import { ObstacleService } from '../../services/obstacle-testing/obstacle.service';
+import { CanvasState, CanvasStateManager } from '../../services/obstacle-testing/canvas-state-manager';
+import { FabricCanvasService } from '../../services/obstacle-testing/fabric-canvas.service';
 import { Obstacle } from './obstacle.model';
 
 @Component({
@@ -33,13 +35,13 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   private originalValues: Obstacle | null = null;
   private startX: number | null = null;
   private startY: number | null = null;
-  private isDragging = false;
-  private isDrawing = false;
   private obstacleMap: Map<number, fabric.Rect> = new Map();
   private destroy$ = new Subject<void>()
-  
+  private canvasStateManager = new CanvasStateManager();
+
   constructor(
     private obstacleService: ObstacleService,
+    private fabricCanvasService: FabricCanvasService,
     private formBuilder: FormBuilder
   ) {
     // Initialize the obstacle form
@@ -63,6 +65,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     // Remove all event listeners
     this.canvas.off();
+    this.fabricCanvasService.clearAllObjectEvents();
 
     // Unsubscribe from all observables
     this.destroy$.next();
@@ -71,32 +74,26 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Initialize the canvas
   private initializeCanvas() {
-    this.canvas = new fabric.Canvas('fabricCanvas');
-    this.canvas.selection = true;
+    this.canvas = this.fabricCanvasService.initializeCanvas('fabricCanvas', 640, 640);
   }
 
   // Load the background image for the canvas
   private loadBackgroundImage() {
-    const bgImage = new Image();
-    bgImage.src = 'assets/images/floorplan.jpg';
-    bgImage.onload = () => {
-      fabric.Image.fromURL(bgImage.src, (img) => {
-        img.scaleToWidth(this.canvas.width);
-        this.canvas.setBackgroundImage(img, this.canvas.renderAll.bind(this.canvas));
-        
-        // Generate default obstacles
-        this.obstacleService.generateRandomObstacles(
-          this.OBSTACLE_COUNT,
-          this.canvas.width,
-          this.canvas.height
-        );
-      });
-    };
-    bgImage.onerror = () => {
-      console.error('Background image failed to load.');
-    };
+    this.fabricCanvasService.loadBackgroundImage(
+      this.canvas,
+      'assets/images/floorplan.jpg',
+      this.onBackgroundImageLoaded.bind(this)
+    );
   }
 
+  // Generate default obstacles
+  private onBackgroundImageLoaded() {
+    this.obstacleService.generateRandomObstacles(
+      this.OBSTACLE_COUNT,
+      this.canvas.width,
+      this.canvas.height
+    );
+  }
 
   // Bind canvas events for interaction
   private bindCanvasEvents() {
@@ -141,8 +138,10 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Handle the rectangle selection logic and update the delete icon
   private selectAndUpdateRect(rect: fabric.Rect) {
-    this.currentRect = rect;
-    this.currentId = this.getObstacleIdByRect(rect);
+    if (this.currentRect !== rect) {
+      this.currentRect = rect;
+      this.currentId = this.getObstacleIdByRect(rect);
+    }
 
     this.updateDeleteIconPosition(rect);
     this.showDeleteIcon = true;
@@ -176,14 +175,13 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Handle when an object is deselected (e.g., clicking outside any object)
   private handleDeselection() {
-    console.log('Deselection triggered')
+    console.log('Deselection triggered');
     this.hideDeleteIcon()
 
     this.currentRect = null;
     this.currentId = null;
 
-    this.isDragging = false;
-    this.isDrawing = false;
+    this.canvasStateManager.setState(CanvasState.Idle);
   }
 
   // Hide the delete icon
@@ -197,7 +195,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     console.log('ObjectMoving triggered')
     this.hideDeleteIcon();
 
-    this.isDragging = true;
+    this.canvasStateManager.setState(CanvasState.Dragging);
     const rect = event.target as fabric.Rect;
 
     if (this.currentId !== null) {
@@ -211,11 +209,16 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
    // Handle when object movement is finished
   private handleObjectModified() {
     console.log('ObjectModified triggered')
-    this.isDragging = false;
+    this.canvasStateManager.setState(CanvasState.Idle);
 
     if (this.currentRect) {
-      // Update the coordinates of the current rectangle to refresh its clickable area
+      // Update the coordinates of the current rectangle
       this.currentRect.setCoords();
+
+      this.obstacleService.updateObstacle(this.currentId, {
+        x: this.currentRect.left!,
+        y: this.currentRect.top!,
+      });
 
       // Re-select the current rectangle and show the delete icon
       this.selectAndUpdateRect(this.currentRect);
@@ -225,12 +228,14 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   // Handle mouse down event for starting rectangle drawing or dragging
   private handleMouseDown(event: fabric.IEvent) {
     console.log('MouseDown triggered')
-    if (this.isDragging || this.isDrawing) return;
+    if (this.canvasStateManager.isDragging() || this.canvasStateManager.isDrawing()) {
+      return;
+    }
 
     const activeObject = this.canvas.getActiveObject();
 
     if (activeObject && this.isRectangle(activeObject)) {
-      this.isDragging = true;
+      this.canvasStateManager.setState(CanvasState.Dragging);
       return;
     }
 
@@ -252,7 +257,8 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     const pointer = this.canvas.getPointer(event.e);
     if (!pointer) return;
 
-    this.isDrawing = true;
+    this.canvasStateManager.setState(CanvasState.Drawing);
+
     this.startX = pointer.x;
     this.startY = pointer.y;
     this.currentRect = null;
@@ -260,7 +266,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Update the size of the rectangle as the mouse moves
   private handleMouseMove(event: fabric.IEvent) {
-    if (!this.isDrawing) return;
+    if (!this.canvasStateManager.isDrawing()) return;
 
     const pointer = this.canvas.getPointer(event.e);
     if (!pointer) return;
@@ -311,9 +317,9 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Finalize drawing the rectangle on mouse up
   private handleMouseUp() {
-    if (!this.isDrawing || !this.currentRect) return;
+    if (!this.canvasStateManager.isDrawing() || !this.currentRect) return;
 
-    this.isDrawing = false;
+    this.canvasStateManager.setState(CanvasState.Idle);
     this.toggleObjectSelectable(true); // Re-enable selection after drawing
 
     if (this.currentRect.width > 0 && this.currentRect.height > 0) {
@@ -335,16 +341,15 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
       evented: true,
     });
     
-    // Update the bounding box (coordinates) after the rectangle is finalized
+    // Update the coordinates of the current rectangle
     this.currentRect.setCoords();
 
     // Assign a unique ID for the new obstacle
     const newObstacleId = Date.now();
 
     // Add the mousedblclick event to allow double-click editing
-    this.currentRect.on('mousedblclick', () => {
-      console.log('New: Rectangle double-clicked');
-      this.showEditForm(this.currentRect!, newObstacleId);
+    this.fabricCanvasService.bindObjectEvents(this.currentRect!, {
+      'mousedblclick': (event) => this.handleRectangleDoubleClick(event, newObstacleId, "New"),
     });
 
     // Store the new obstacle in the map
@@ -365,6 +370,15 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   private toggleObjectSelectable(isSelectable: boolean) {
     this.canvas.selection = isSelectable;
     this.canvas.forEachObject((obj) => obj.selectable = isSelectable);
+  }
+
+  private handleRectangleDoubleClick(
+    event: fabric.IEvent,
+    obstacleId: number,
+    type: string
+  ): void {
+    console.log(type, 'rectangle double-clicked');
+    this.showEditForm(event.target as fabric.Rect, obstacleId);
   }
 
   // Handle zooming with the mouse wheel
@@ -404,7 +418,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Update the rectangle based on form values
   private updateRectangleFromForm(formValue: Obstacle) {
-    this.setRectangleProperties(this.currentRect, formValue);
+    this.updateRectangleProperties(this.currentRect, formValue);
     
     // Updates the obstacle in the obstacle service
     this.obstacleService.updateObstacle(this.currentId, {
@@ -417,7 +431,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   }
 
   // Apply updated properties to the rectangle
-  private setRectangleProperties(rect: fabric.Rect, values: Partial<Obstacle>): void {
+  private updateRectangleProperties(rect: fabric.Rect, values: Partial<Obstacle>): void {
     const updatedProperties: Partial<fabric.Rect> = {
       left: values.x !== undefined ? parseFloat(values.x.toString()) : rect.left,
       top: values.y !== undefined ? parseFloat(values.y.toString()) : rect.top,
@@ -427,6 +441,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     };
   
     rect.set(updatedProperties); // Update all properties at once
+    rect.setCoords();  // Update the coordinates of the current rectangle
     this.canvas.renderAll(); // Re-draw the layer
   }
 
@@ -464,13 +479,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Update a rectangle with the new obstacle properties
   private updateRectangle(rect: fabric.Rect, obstacle: Obstacle) {
-    rect.set({
-      left: obstacle.x,
-      top: obstacle.y,
-      width: obstacle.width,
-      height: obstacle.height,
-      fill: obstacle.color,
-    }).setCoords();
+    this.updateRectangleProperties(rect, obstacle);
   }
 
   // Add a new obstacle to the canvas
@@ -499,9 +508,9 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     });
 
     // Add the mousedblclick event to allow double-click editing
-    rect.on('mousedblclick', () => {
-      console.log('Data: Rectangle double-clicked');
-      this.showEditForm(rect, obstacle.id);
+    // Add the mousedblclick event to allow double-click editing
+    this.fabricCanvasService.bindObjectEvents(rect!, {
+      'mousedblclick': (event) => this.handleRectangleDoubleClick(event, obstacle.id, "Defaule"),
     });
 
     return rect;
@@ -568,7 +577,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   // Cancel editing and revert to the original values
   cancelEditForm() {
     if (this.currentRect && this.originalValues) {
-      this.setRectangleProperties(this.currentRect, this.originalValues);
+      this.updateRectangleProperties(this.currentRect, this.originalValues);
 
       // Reset the form values to the original ones
       this.obstacleForm.patchValue({
