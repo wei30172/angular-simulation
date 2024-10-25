@@ -19,6 +19,7 @@
     "@angular/platform-browser": "~9.1.4",
     "@angular/platform-browser-dynamic": "~9.1.4",
     "@angular/router": "~9.1.4",
+    "babylonjs": "^4.2.0",
     "fabric": "^4.6.0",
     "konva": "^9.3.15",
     "plotly.js-dist": "^2.35.2",

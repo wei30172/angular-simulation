@@ -2,8 +2,11 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-
-  canvas {
-    flex: 1;
+  
+  #konvaCanvas, #fabricCanvas {
+    border: 1px solid black;
+    width: 640px;
+    height: 640px;
+    display: block;
   }
 }
