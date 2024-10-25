@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Obstacle } from '../../features/obstacle-testing/obstacle.model';
+import { Obstacle } from 'src/app/features/obstacle-testing/obstacle.model';
 
 @Component({
   selector: 'app-obstacle-list',

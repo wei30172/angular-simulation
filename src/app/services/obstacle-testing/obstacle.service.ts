@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Obstacle } from '../../features/obstacle-testing/obstacle.model';
+import { Obstacle } from 'src/app/features/obstacle-testing/obstacle.model';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({

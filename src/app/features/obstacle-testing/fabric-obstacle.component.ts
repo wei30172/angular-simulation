@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { fabric } from 'fabric';
 
-import { ObstacleService } from '../../services/obstacle-testing/obstacle.service';
-import { CanvasState, CanvasStateManager } from '../../services/obstacle-testing/canvas-state-manager';
-import { FabricCanvasService } from '../../services/obstacle-testing/fabric-canvas.service';
+import { ObstacleService } from 'src/app/services/obstacle-testing/obstacle.service';
+import { ObstacleFormService } from 'src/app/services/obstacle-testing//obstacle-form.service';
+import { CanvasState, CanvasStateManager } from 'src/app/services/obstacle-testing/canvas-state-manager';
+import { FabricCanvasService } from 'src/app/services/obstacle-testing/fabric-canvas.service';
 import { Obstacle } from './obstacle.model';
 
 @Component({
@@ -41,17 +42,11 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   constructor(
     private obstacleService: ObstacleService,
+    private obstacleFormService: ObstacleFormService,
     private fabricCanvasService: FabricCanvasService,
-    private formBuilder: FormBuilder
   ) {
     // Initialize the obstacle form
-    this.obstacleForm = this.formBuilder.group({
-      x: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
-      y: ['', [Validators.required, Validators.pattern('^[0-9]*$')]],
-      width: ['', [Validators.required, Validators.min(1)]],
-      height: ['', [Validators.required, Validators.min(1)]],
-      color: [''],
-    });
+    this.obstacleForm = this.obstacleFormService.getForm();
   }
 
   ngOnInit() {
@@ -144,7 +139,6 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     }
 
     this.updateDeleteIconPosition(rect);
-    this.showDeleteIcon = true;
 
     this.canvas.renderAll();
   }
@@ -171,6 +165,8 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
       top: `${boundingRect.top + canvasOffset.top - 10}px`,
       left: `${boundingRect.left + boundingRect.width + canvasOffset.left - 10}px`,
     };
+
+    this.showDeleteIcon = true;
   }
 
   // Handle when an object is deselected (e.g., clicking outside any object)
@@ -406,12 +402,12 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   
   // Subscribe to changes in the obstacle form
   private subscribeToFormChanges() {
-    this.obstacleForm.valueChanges
+    this.obstacleFormService.getFormChanges()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((formValue) => {
+      .subscribe(formValue => {
         if (this.currentRect && this.currentId !== null) {
           // Update rectangle properties based on form input
-          this.updateRectangleFromForm(formValue); 
+          this.updateRectangleFromForm(formValue);
         }
       });
   }
@@ -545,20 +541,10 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     };
 
     // Populate the form with the rectangle's current values
-    this.populateFormWithValues(this.originalValues);
+    this.obstacleFormService.populateForm(this.originalValues);
 
     // Show the popup form for editing
     this.showPopup = true;
-  }
-
-  private populateFormWithValues(values: Obstacle) {
-    this.obstacleForm.setValue({
-      x: values.x.toString(),
-      y: values.y.toString(),
-      width: values.width.toString(),
-      height: values.height.toString(),
-      color: values.color,
-    });
   }
 
   // Submit the edit form
@@ -572,6 +558,9 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     this.currentRect = null;
     this.currentId = null;
     this.originalValues = null;
+
+    // Reset the form
+    this.obstacleFormService.resetForm();
   }
 
   // Cancel editing and revert to the original values
@@ -579,12 +568,12 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     if (this.currentRect && this.originalValues) {
       this.updateRectangleProperties(this.currentRect, this.originalValues);
 
-      // Reset the form values to the original ones
-      this.obstacleForm.patchValue({
-        x: this.originalValues.x.toString(),
-        y: this.originalValues.y.toString(),
-        width: this.originalValues.width.toString(),
-        height: this.originalValues.height.toString(),
+      // Reset the form values to the original values
+      this.obstacleFormService.patchFormValue({
+        x: this.originalValues.x,
+        y: this.originalValues.y,
+        width: this.originalValues.width,
+        height: this.originalValues.height,
         color: this.originalValues.color,
       });
     }

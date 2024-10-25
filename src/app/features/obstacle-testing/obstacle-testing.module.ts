@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ObstacleComponentsModule } from '../../components/obstacle-omponents.module';
+import { ObstacleComponentsModule } from 'src/app/components/obstacle-components.module';
 
 import { FabricObstacleComponent } from './fabric-obstacle.component';
 import { KonvaObstacleComponent } from './konva-obstacle.component';
