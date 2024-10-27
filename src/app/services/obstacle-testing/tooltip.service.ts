@@ -42,7 +42,7 @@ export class TooltipService {
       targetData,
       container,
       offset = 10,
-      position = 'top',
+      position = 'bottom',
       tooltipHeight = this.tooltipHeight,
       tooltipWidth = this.tooltipWidth,
       throttleDelay = 100,

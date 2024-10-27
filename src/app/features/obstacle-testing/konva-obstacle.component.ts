@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import Konva from 'konva';
@@ -8,6 +8,7 @@ import { ObstacleService } from 'src/app/services/obstacle-testing/obstacle.serv
 import { ObstacleFormService } from 'src/app/services/obstacle-testing//obstacle-form.service';
 import { CanvasState, CanvasStateManager } from 'src/app/services/obstacle-testing/canvas-state-manager';
 import { KonvaCanvasService } from 'src/app/services/obstacle-testing/konva-canvas.service';
+import { TooltipService } from 'src/app/services/obstacle-testing/tooltip.service';
 import { Obstacle } from './obstacle.model';
 
 @Component({
@@ -19,9 +20,6 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   // Constants for canvas behavior
   private readonly DEFAULT_COLOR = '#00FFFF';
   private readonly OBSTACLE_COUNT = 20;
-  private readonly MIN_ZOOM = 1;
-  private readonly MAX_ZOOM = 20;
-  private readonly PAN_OFFSET = 10;
   private readonly MIN_DRAG_DISTANCE = 5;
 
   obstacleList: Obstacle[] = [];
@@ -46,6 +44,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     private obstacleService: ObstacleService,
     private obstacleFormService: ObstacleFormService,
     private konvaCanvasService: KonvaCanvasService,
+    private tooltipService: TooltipService,
   ) {
     // Initialize the obstacle form
     this.obstacleForm = this.obstacleFormService.getForm();
@@ -74,7 +73,9 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
   // Initialize canvas and layer
   private initializeCanvas() {
-    this.stage = this.konvaCanvasService.initializeStage('konvaCanvas', 640, 640);
+    this.konvaCanvasService.initializeStage('konvaCanvas', 640, 640);
+    this.stage = this.konvaCanvasService.getStage();
+
     // Add a layer for drawing shapes
     this.layer = new Konva.Layer();
     this.stage.add(this.layer);
@@ -88,18 +89,17 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.layer.add(this.transformer);
   }
 
-   // Load the background image for the canvas
+  // Load the background image for the canvas
   private loadBackgroundImage() {
     this.konvaCanvasService.loadBackgroundImage(
       this.layer,
       'assets/images/floorplan.jpg',
-      this.stage,
-      this.onBackgroundImageLoaded.bind(this)
+      this.onBackgroundImageLoaded
     );
   }
 
   // Generate default obstacles
-  private onBackgroundImageLoaded() {
+  private onBackgroundImageLoaded = () => {
     this.obstacleService.generateRandomObstacles(
       this.OBSTACLE_COUNT,
       this.stage.width(),
@@ -135,7 +135,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
     this.layer.draw();
   }
-
+  
   // Get the obstacle ID by comparing the selected rectangle
   private getObstacleIdByRect(rect: Konva.Rect): number {
     for (const [id, storedRect] of this.obstacleMap.entries()) {
@@ -149,7 +149,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   }
 
   // Update the position of the delete icon relative to the selected rectangle
-  private updateDeleteIconPosition(rect: Konva.Rect): void {
+  private updateDeleteIconPosition(rect: Konva.Rect) {
     const boundingRect = rect.getClientRect();
     const containerRect = this.stage.container().getBoundingClientRect();
     
@@ -164,7 +164,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
   // Deselect transformer and hide the delete icon
   private handleDeselection() {
-    console.log('Deselection triggered');
+    // console.log('Deselection triggered');
     this.hideDeleteIcon();
 
     this.transformer.nodes([]);
@@ -184,7 +184,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
   // Handle mouse down event for starting rectangle drawing or dragging
   private handleMouseDown(event: Konva.KonvaEventObject<MouseEvent>) {
-    console.log('MouseDown triggered')
+    // console.log('MouseDown triggered');
     if (this.canvasStateManager.isDragging() || this.canvasStateManager.isDrawing()) return;
 
     if (event.target instanceof Konva.Rect) {
@@ -199,11 +199,11 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     }
 
     // Start drawing a new rectangle
-    this.initiateDrawing(event);
+    this.initiateDrawing();
   }
 
   // Start drawing a new rectangle
-  private initiateDrawing(event: Konva.KonvaEventObject<MouseEvent>) {
+  private initiateDrawing() {
     const pointer = this.stage.getPointerPosition();
     if (!pointer) return;
 
@@ -303,46 +303,17 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.selectAndUpdateRect(this.currentRect);
   }
 
-  // Mouse wheel event to handle zoom in/out
-  private handleMouseWheel(event: Konva.KonvaEventObject<WheelEvent>): void {
+  // Handle zooming with the mouse wheel
+  private handleMouseWheel(event: Konva.KonvaEventObject<WheelEvent>) {
     this.hideDeleteIcon();
 
     const wheelEvent = event.evt as WheelEvent;
     wheelEvent.preventDefault();
   
     // Adjust zoom level
-    this.adjustMouseWheelZoom(wheelEvent);
+    this.konvaCanvasService.adjustMouseWheelZoom(wheelEvent);
   }
-
-  // Adjust zoom level based on mouse wheel interaction
-  private adjustMouseWheelZoom(wheelEvent: WheelEvent) {
-    const oldScale = this.stage.scaleX(); // Get the current zoom level of the canvas
-    const pointer = this.stage.getPointerPosition();
-    if (!pointer) return;
   
-    const scaleBy = 1.05; // smooths the zooming effect
-    const newScale = wheelEvent.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-
-    // Ensure new scale is within the defined limits
-    const limitedScale = Math.max(this.MIN_ZOOM, Math.min(this.MAX_ZOOM, newScale));
-
-    this.stage.scale({ x: limitedScale, y: limitedScale });
-  
-    const mousePointTo = {
-      x: (pointer.x - this.stage.x()) / oldScale,
-      y: (pointer.y - this.stage.y()) / oldScale,
-    };
-  
-    const newPos = {
-      x: pointer.x - mousePointTo.x * newScale,
-      y: pointer.y - mousePointTo.y * newScale,
-    };
-  
-    // Zoom in/out relative to the mouse pointer position
-    this.stage.position(newPos);
-    this.stage.batchDraw();
-  }
-
   // Subscribe to form changes
   private subscribeToFormChanges() {
     this.obstacleFormService.getFormChanges()
@@ -370,7 +341,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   }
 
   // Set the rectangle properties
-  private updateRectangleProperties(rect: Konva.Rect, values: Partial<Obstacle>): void {
+  private updateRectangleProperties(rect: Konva.Rect, values: Partial<Obstacle>) {
     const updatedProperties = {
       x: values.x !== undefined ? parseFloat(values.x.toString()) : rect.x(),
       y: values.y !== undefined ? parseFloat(values.y.toString()) : rect.y(),
@@ -385,7 +356,6 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
   // Subscribe to obstacle updates from the service
   private subscribeToObstacles() {
-    this.obstacleService.obstacles$
     this.obstacleService.obstacles$
     .pipe(
       takeUntil(this.destroy$),
@@ -456,46 +426,52 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   }
 
   // Function to add event listeners to a rectangle
-  private addRectangleEventListeners(rect: Konva.Rect, obstacleId: number): void {
+  private addRectangleEventListeners(rect: Konva.Rect, obstacleId: number) {
     this.konvaCanvasService.bindObjectEvents(rect, {
       'dragstart': () => this.handleRectangleDragStart(),
       'dragmove': () => this.handleRectangleDraging(rect, obstacleId),
       'dragend': () => this.handleRectangleDragEnd(rect),
       'click': () => this.handleRectangleClick(rect),
       'transformend': () => this.handleRectangleTransform(rect, obstacleId),
-      'dblclick': () => this.showEditForm(rect, obstacleId)
+      'mouseover': () => this.handleRectangleMouseOver(rect),
+      'mouseout': () => this.handleRectangleMouseOut(rect),
+      'dblclick': () => this.handleRectangleDoubleClick(rect, obstacleId),
     });
   }
 
   // Update position when rectangle is dragged
   private handleRectangleDragStart() {
-    console.log('DragStart triggered')
+    // console.log('DragStart triggered');
     this.hideDeleteIcon();
+    this.tooltipService.hideTooltip();
 
     this.canvasStateManager.setState(CanvasState.Dragging);
   }
 
   // Update position when rectangle is dragged
-  private handleRectangleDraging(rect: Konva.Rect, obstacleId: number): void {
+  private handleRectangleDraging(rect: Konva.Rect, obstacleId: number) {
     this.obstacleService.updateObstacle(obstacleId, {
       x: rect.x(),
       y: rect.y(),
     });
-    this.layer.batchDraw();
   }
 
   // Update position when rectangle is dragged
-  private handleRectangleDragEnd(rect: Konva.Rect): void {
-    console.log('DragEnd triggered')
+  private handleRectangleDragEnd(rect: Konva.Rect) {
+    // console.log('DragEnd triggered');
     this.canvasStateManager.setState(CanvasState.Idle);
+
+    this.updateTooltip(
+      { x: rect.x()!, y: rect.y()!, width: rect.width()!, height: rect.height()! },
+    );
 
     // Re-select the current rectangle and show the delete icon
     this.selectAndUpdateRect(rect);
   }
 
   // Enable transformer when rectangle is clicked
-  private handleRectangleClick(rect: Konva.Rect): void {
-    console.log('RectangleClick triggered');
+  private handleRectangleClick(rect: Konva.Rect) {
+    // console.log('RectangleClick triggered');
     
     // Deselect any previously selected object
     this.handleDeselection();
@@ -505,8 +481,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   }
 
   // Update size after the transformation (resizing)
-  private handleRectangleTransform(rect: Konva.Rect, obstacleId: number): void {
-    console.log('RectangleTransform triggered')
+  private handleRectangleTransform(rect: Konva.Rect, obstacleId: number) {
+    // console.log('RectangleTransform triggered');
     const newAttrs = {
       x: rect.x(),
       y: rect.y(),
@@ -536,7 +512,56 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     // Re-select the current rectangle and show the delete icon
     this.selectAndUpdateRect(rect);
   }
-  
+
+  // Mouse hovers over a rectangle, displaying the tooltip
+  private handleRectangleMouseOver(rect: Konva.Rect) {
+    // Update target stroke style
+    rect.setAttrs({
+      stroke: 'white',
+      strokeWidth: 2,
+    });
+
+    // Retrieve object position and dimensions
+    const { x, y, width, height } = rect.getClientRect();
+    const obstacleData = { x, y, width, height };
+    this.updateTooltip(obstacleData);
+
+    // Render updated styles and tooltip
+    this.layer.batchDraw();
+  }
+
+  // Mouse leaves a Rectangle, hiding the tooltip
+  private handleRectangleMouseOut(rect: Konva.Rect) {
+    // Reset stroke style
+    rect.setAttrs({
+      stroke: null,
+      strokeWidth: 0,
+    });
+
+    // Hide tooltip and render changes
+    this.tooltipService.hideTooltip();
+    this.layer.batchDraw();
+  }
+
+  // Update Tooltip position and content
+  private updateTooltip(
+    obstacleData: Partial<Obstacle>,
+  ) {
+    const { x = 0, y = 0 } = obstacleData;
+    const description = `Obstacle at (${Math.round(x)}, ${Math.round(y)})`;
+
+    // Show the tooltip with calculated position and content
+    this.tooltipService.showTooltip({
+      description,
+      targetData: obstacleData,
+      container: this.stage.container(),
+    });
+  }
+
+  private handleRectangleDoubleClick(rect: Konva.Rect, obstacleId: number) {
+    this.showEditForm(rect, obstacleId);
+  }
+
   // Show the edit form for a selected rectangle
   private showEditForm(rect: Konva.Rect, obstacleId: number) {
     this.currentRect = rect;
@@ -558,7 +583,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     // Show the popup form for editing
     this.showPopup = true;
   }
-
+  
   // Submit the edit form
   submitEditForm() {
     this.closeEditForm();
@@ -592,59 +617,51 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   }
 
   // Zoom in by increasing the zoom factor by 10%
-  zoomIn(): void {
+  zoomIn() {
     this.adjustZoom(1.1);
   }
 
   // Zoom out by decreasing the zoom factor by 10%
-  zoomOut(): void {
+  zoomOut() {
     this.adjustZoom(1 / 1.1);
   }
 
   // Reset the zoom to the default level
-  resetZoom(): void {
+  resetZoom() {
     this.hideDeleteIcon();
-    this.stage.scale({ x: 1, y: 1 });
-    this.stage.position({ x: 0, y: 0 });
-    this.layer.batchDraw();
+    this.konvaCanvasService.resetZoom();
   }
 
   // Adjust the zoom level
   private adjustZoom(factor: number) {
     this.hideDeleteIcon();
-    let zoomLevel = this.stage.scaleX();
-    const newZoom = zoomLevel * factor;
-
-    if (newZoom > this.MAX_ZOOM || newZoom < this.MIN_ZOOM) return;
-    this.stage.scale({ x: newZoom, y: newZoom });
-    this.layer.batchDraw();
+    this.konvaCanvasService.adjustZoom(factor);
   }
   
   // Move the stage up
-  moveUp(): void {
-    this.moveCanvas(0, -this.PAN_OFFSET);
+  moveUp() {
+    this.moveCanvas(0, -1);
   }
 
   // Move the stage down
-  moveDown(): void {
-    this.moveCanvas(0, this.PAN_OFFSET);
+  moveDown() {
+    this.moveCanvas(0, 1);
   }
 
   // Move the stage left
-  moveLeft(): void {
-    this.moveCanvas(-this.PAN_OFFSET, 0);
+  moveLeft() {
+    this.moveCanvas(-1, 0);
   }
 
   // Move the stage right
-  moveRight(): void {
-    this.moveCanvas(this.PAN_OFFSET, 0);
+  moveRight() {
+    this.moveCanvas(1, 0);
   }
 
-    // Adjust the canvas position by panning
-  private moveCanvas(offsetX: number, offsetY: number) {
+  // Adjust the canvas position by panning
+  private moveCanvas(directionX: number, directionY: number) {
     this.hideDeleteIcon();
-    this.stage.position({ x: this.stage.x() + offsetX, y: this.stage.y() + offsetY });
-    this.layer.batchDraw();
+    this.konvaCanvasService.moveCanvas(directionX, directionY);
   }
 
    // Select an obstacle from the list and set it as active on the canvas
