@@ -7,6 +7,7 @@ import { EditFormComponent } from 'src/app/components/edit-form/edit-form.compon
 import { ZoomControlsComponent } from 'src/app/components/zoom-controls/zoom-controls.component';
 import { ObstacleListComponent } from 'src/app/components/obstacle-list/obstacle-list.component';
 import { DeleteIconComponent } from 'src/app/components/delete-icon/delete-icon.component';
+import { TooltipComponent } from 'src/app/components/tooltip/tooltip.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { DeleteIconComponent } from 'src/app/components/delete-icon/delete-icon.
     EditFormComponent,
     ZoomControlsComponent,
     ObstacleListComponent,
-    DeleteIconComponent
+    DeleteIconComponent,
+    TooltipComponent
   ],
   imports: [
     CommonModule,
@@ -25,7 +27,8 @@ import { DeleteIconComponent } from 'src/app/components/delete-icon/delete-icon.
     EditFormComponent,
     ZoomControlsComponent,
     ObstacleListComponent,
-    DeleteIconComponent
+    DeleteIconComponent,
+    TooltipComponent
   ]
 })
 export class ObstacleComponentsModule { }

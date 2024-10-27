@@ -1,0 +1,4 @@
+<div #tooltip class="tooltip" *ngIf="tooltip$ | async as tooltipData" [ngStyle]="tooltipData.style">
+  <div *ngIf="tooltipData.title" class="tooltip-title">{{ tooltipData.title }}</div>
+  <div *ngIf="tooltipData.description" class="tooltip-description">{{ tooltipData.description }}</div>
+</div>
