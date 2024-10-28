@@ -4,11 +4,13 @@ import { ObstacleComponentsModule } from 'src/app/components/obstacle-components
 
 import { FabricObstacleComponent } from './fabric-obstacle.component';
 import { KonvaObstacleComponent } from './konva-obstacle.component';
+import { Obstacle3DComponent } from './obstacle-3d.component';
 
 @NgModule({
   declarations: [
     FabricObstacleComponent,
     KonvaObstacleComponent,
+    Obstacle3DComponent,
   ],
   imports: [
     CommonModule,
@@ -17,6 +19,7 @@ import { KonvaObstacleComponent } from './konva-obstacle.component';
   exports: [
     FabricObstacleComponent,
     KonvaObstacleComponent,
+    Obstacle3DComponent,
   ]
 })
 export class ObstacleTestingModule { }

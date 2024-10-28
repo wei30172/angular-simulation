@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { fabric } from 'fabric';
 
-import { ObstacleService } from 'src/app/services/obstacle-testing/obstacle.service';
+import { ObstacleService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
 import { ObstacleFormService } from 'src/app/services/obstacle-testing//obstacle-form.service';
 import { CanvasState, CanvasStateManager } from 'src/app/services/obstacle-testing/canvas-state-manager';
 import { FabricCanvasService } from 'src/app/services/obstacle-testing/fabric-canvas.service';
