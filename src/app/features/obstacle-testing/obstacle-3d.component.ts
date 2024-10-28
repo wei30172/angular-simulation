@@ -97,6 +97,7 @@ export class Obstacle3DComponent implements OnInit, OnDestroy {
     box.position.x = obstacle.x - halfGroundSize + obstacle.width / 2; // Center on the ground
     box.position.z = halfGroundSize - obstacle.y - obstacle.height / 2; // Adjust to match 2D coordinates
     box.position.y = this.OBSTACLE_HEIGHT / 2; // Place obstacle at ground level
+    // box.rotation.y = BABYLON.Angle.FromDegrees(obstacle.rotationAngle).radians();
 
     // Apply material with the specified color
     const material = new BABYLON.StandardMaterial(`material-${obstacle.id}`, this.scene);

@@ -13,4 +13,5 @@ export class ZoomControlsComponent {
   @Output() moveRight = new EventEmitter<void>();
   @Output() moveDown = new EventEmitter<void>();
   @Output() resetZoom = new EventEmitter<void>();
+  @Output() toggleGrid = new EventEmitter<void>();
 }

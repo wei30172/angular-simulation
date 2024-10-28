@@ -5,34 +5,61 @@ import Konva from 'konva';
   providedIn: 'root',
 })
 export class KonvaCanvasService {
-  // Store the stage instance
+  // Store the stage and layer instance
   private stage: Konva.Stage | null = null;
-
+  private gridLayer: Konva.Layer | null = null;
+  private backgroundLayer: Konva.Layer | null = null;
+  private obstacleLayer: Konva.Layer | null = null;
+  private gridVisible = false;
+  
   // Map to track objects and their events
   private objectEventMap: Map<Konva.Node, Map<string, (event: Konva.KonvaEventObject<MouseEvent | TouchEvent | WheelEvent>) => void>> = new Map();
 
-  // Default zoom and pan limits
+  // Default constants
+  private readonly DEFAULT_GRID_SIZE = 20;
+  private readonly DEFAULT_WIDTH = 640;
+  private readonly DEFAULT_HEIGHT = 640;
   private readonly MIN_ZOOM = 1;
   private readonly MAX_ZOOM = 20;
   private readonly PAN_OFFSET = 10;
   private readonly SCALE_BY = 1.05;
 
-  // Initialize the stage (canvas container)
-  initializeStage(containerId: string, width: number = 640, height: number = 640) {
-    this.stage = new Konva.Stage({
-      container: containerId,
-      width: width,
-      height: height,
-    });
+  // Initialize the stage with optional grid size, width, and height
+  initializeStage(
+    containerId: string,
+    width: number = this.DEFAULT_WIDTH,
+    height: number = this.DEFAULT_HEIGHT,
+    gridSize: number = this.DEFAULT_GRID_SIZE
+  ) {
+    this.stage = new Konva.Stage({ container: containerId, width, height });
+
+    // Initialize background, grid, and obstacle layers
+    this.backgroundLayer = new Konva.Layer();
+    this.gridLayer = new Konva.Layer();
+    this.obstacleLayer = new Konva.Layer();
+
+    this.stage.add(this.backgroundLayer);
+    this.createGridLayer(gridSize); // Adds grid lines to gridLayer
+    this.stage.add(this.gridLayer);
+    this.stage.add(this.obstacleLayer);
+
+    // Ensure grid layer is just above background
+    this.gridLayer.moveToBottom();
+    this.backgroundLayer.moveToBottom();
   }
 
-  // Get the stage instance
+    // Get the stage instance
   getStage(): Konva.Stage | null {
     return this.stage;
   }
 
-  // Load background image into the layer
-  loadBackgroundImage(layer: Konva.Layer, imageUrl: string, onLoadCallback?: () => void) {
+  // Get the obstacle layer
+  getObstacleLayer(): Konva.Layer | null {
+    return this.obstacleLayer;
+  }
+
+  // Load background image into background layer
+  loadBackgroundImage(imageUrl: string, onLoadCallback?: () => void) {
     if (!this.stage) {
       throw new Error('Stage is not initialized. Please initialize the stage first.');
     }
@@ -46,10 +73,47 @@ export class KonvaCanvasService {
         width: this.stage!.width(),
         height: this.stage!.height(),
       });
-      layer.add(konvaImage); // Add the image to the layer
-      layer.draw(); // Render the layer
+      this.backgroundLayer!.add(konvaImage);
+      this.backgroundLayer!.draw();
       if (onLoadCallback) onLoadCallback(); // Execute callback when the image is loaded
     };
+  }
+
+  // Create grid layer based on grid size
+  private createGridLayer(gridSize: number) {
+    if (!this.stage) return;
+    this.gridLayer = new Konva.Layer();
+    const width = this.stage.width();
+    const height = this.stage.height();
+
+    // Draw vertical and horizontal grid lines
+    for (let i = 0; i < width / gridSize; i++) {
+      this.gridLayer.add(new Konva.Line({
+        points: [i * gridSize, 0, i * gridSize, height],
+        stroke: '#ddd',
+        strokeWidth: 1,
+      }));
+    }
+
+    for (let j = 0; j < height / gridSize; j++) {
+      this.gridLayer.add(new Konva.Line({
+        points: [0, j * gridSize, width, j * gridSize],
+        stroke: '#ddd',
+        strokeWidth: 1,
+      }));
+    }
+
+    this.gridLayer.visible(this.gridVisible);
+    this.stage.add(this.gridLayer);
+  }
+
+  // Toggle grid visibility
+  toggleGrid() {
+    if (!this.gridLayer) return;
+    this.gridVisible = !this.gridVisible;
+    this.gridLayer.visible(this.gridVisible);
+    this.gridLayer.draw();
+    this.stage!.batchDraw();
   }
 
   // Adjust zoom level based on mouse wheel interaction

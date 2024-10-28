@@ -30,7 +30,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   currentId: number | null = null;
   
   private stage: Konva.Stage;
-  private layer: Konva.Layer;
+  private obstacleLayer: Konva.Layer;
   private transformer: Konva.Transformer;
   private currentRect: Konva.Rect | null = null;
   private originalValues: Obstacle | null = null;
@@ -73,26 +73,26 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
   // Initialize canvas and layer
   private initializeCanvas() {
-    this.konvaCanvasService.initializeStage('konvaCanvas', 640, 640);
+    this.konvaCanvasService.initializeStage('konvaCanvas');
     this.stage = this.konvaCanvasService.getStage();
 
-    // Add a layer for drawing shapes
-    this.layer = new Konva.Layer();
-    this.stage.add(this.layer);
-
-    // Initialize the transformer, enabling rotation and resizing
-    this.transformer = new Konva.Transformer({
-      rotateEnabled: true,
-      resizeEnabled: true,
-      anchorSize: 15
-    });
-    this.layer.add(this.transformer);
+    // Retrieve obstacle layer
+    this.obstacleLayer = this.konvaCanvasService.getObstacleLayer();
+    if (this.obstacleLayer) {
+      // Initialize the transformer for the obstacle layer
+      this.transformer = new Konva.Transformer({
+        rotateEnabled: true,
+        resizeEnabled: true,
+        anchorSize: 15,
+        opacity: 0.5,
+      });
+      this.obstacleLayer.add(this.transformer);
+    }
   }
 
   // Load the background image for the canvas
   private loadBackgroundImage() {
     this.konvaCanvasService.loadBackgroundImage(
-      this.layer,
       'assets/images/floorplan.jpg',
       this.onBackgroundImageLoaded
     );
@@ -133,7 +133,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
     this.updateDeleteIconPosition(rect);
 
-    this.layer.draw();
+    this.obstacleLayer.draw();
   }
   
   // Get the obstacle ID by comparing the selected rectangle
@@ -168,7 +168,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.hideDeleteIcon();
 
     this.transformer.nodes([]);
-    this.layer.batchDraw();
+    this.obstacleLayer.batchDraw();
     
     this.currentRect = null;
     this.currentId = null;
@@ -242,7 +242,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
     if (this.currentRect) {
       this.currentRect.size({ width: distanceX, height: distanceY });
-      this.layer.batchDraw(); // Update canvas with new dimensions
+      this.obstacleLayer.batchDraw(); // Update canvas with new dimensions
     }
   }
 
@@ -259,7 +259,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
       draggable: false,
     });
 
-    this.layer.add(this.currentRect); // Add the rectangle to the canvas
+    this.obstacleLayer.add(this.currentRect); // Add the rectangle to the canvas
   }
 
   // Finalize drawing the rectangle on mouse up
@@ -351,7 +351,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     };
 
     rect.setAttrs(updatedProperties); // Update all properties at once
-    this.layer.draw(); // Re-draw the layer
+    this.obstacleLayer.draw(); // Re-draw the layer
   }
 
   // Subscribe to obstacle updates from the service
@@ -384,7 +384,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     });
 
     this.removeOldObstacles(currentObstacles); // Remove old obstacles not in the new data
-    this.layer.batchDraw();
+    this.obstacleLayer.batchDraw();
   }
 
   // Update a rectangle with the new obstacle properties
@@ -396,7 +396,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   private addNewObstacleToCanvas(obstacle: Obstacle) {
     const rect = this.createRectangle(obstacle);
     this.obstacleMap.set(obstacle.id, rect);
-    this.layer.add(rect);
+    this.obstacleLayer.add(rect);
   }
 
   // Create a new rectangle and add event handlers
@@ -517,8 +517,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   private handleRectangleMouseOver(rect: Konva.Rect) {
     // Update target stroke style
     rect.setAttrs({
-      stroke: 'white',
-      strokeWidth: 2,
+      stroke: 'rgba(255, 255, 255, 0.8)',
+      strokeWidth: 1,
     });
 
     // Retrieve object position and dimensions
@@ -527,7 +527,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.updateTooltip(obstacleData);
 
     // Render updated styles and tooltip
-    this.layer.batchDraw();
+    this.obstacleLayer.batchDraw();
   }
 
   // Mouse leaves a Rectangle, hiding the tooltip
@@ -540,7 +540,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
     // Hide tooltip and render changes
     this.tooltipService.hideTooltip();
-    this.layer.batchDraw();
+    this.obstacleLayer.batchDraw();
   }
 
   // Update Tooltip position and content
@@ -662,6 +662,11 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   private moveCanvas(directionX: number, directionY: number) {
     this.hideDeleteIcon();
     this.konvaCanvasService.moveCanvas(directionX, directionY);
+  }
+
+  // Toggle grid visibility
+  toggleGrid() {
+    this.konvaCanvasService.toggleGrid();
   }
 
    // Select an obstacle from the list and set it as active on the canvas

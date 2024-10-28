@@ -5,24 +5,32 @@ import { fabric } from 'fabric';
   providedIn: 'root',
 })
 export class FabricCanvasService {
-  // Store the canvas instance
+  // Store the canvas and layer instance
   private canvas: fabric.Canvas | null = null;
-
+  private gridVisible = false;
+  private gridLines: fabric.Line[] = [];
+  
   // Map to track objects and their events
   private objectEventMap: Map<fabric.Object, Map<string, (event: fabric.IEvent) => void>> = new Map();
 
-  // Default zoom and pan limits
+  // Default constants
+  private readonly DEFAULT_GRID_SIZE = 20;
+  private readonly DEFAULT_WIDTH = 640;
+  private readonly DEFAULT_HEIGHT = 640;
   private readonly MIN_ZOOM = 1;
   private readonly MAX_ZOOM = 20;
   private readonly PAN_OFFSET = 10;
   private readonly SCALE_BY = 1.05;
 
-  // Initialize the canvas
-  initializeCanvas(canvasId: string, width: number = 640, height: number = 640) {
-    this.canvas = new fabric.Canvas(canvasId);
-    this.canvas.setWidth(width);
-    this.canvas.setHeight(height);
-    this.canvas.selection = true; // Enable object selection
+  // Initialize the canvas with optional grid size, width, and height
+  initializeCanvas(
+    canvasId: string,
+    width: number = this.DEFAULT_WIDTH,
+    height: number = this.DEFAULT_HEIGHT,
+    gridSize: number = this.DEFAULT_GRID_SIZE
+  ) {
+    this.canvas = new fabric.Canvas(canvasId, { width, height });
+    this.createGrid(gridSize);
   }
 
   // Get the canvas instance
@@ -43,6 +51,49 @@ export class FabricCanvasService {
     }
     // , { crossOrigin: 'anonymous' } // Handle cross-origin
     );
+  }
+  
+  // Create grid lines based on grid size
+  private createGrid(gridSize: number) {
+    if (!this.canvas) return;
+    const width = this.canvas.getWidth();
+    const height = this.canvas.getHeight();
+
+    // Draw vertical and horizontal grid lines
+    for (let i = 0; i < width / gridSize; i++) {
+      const line = new fabric.Line([i * gridSize, 0, i * gridSize, height], {
+        stroke: '#ddd',
+        selectable: false,
+        evented: false,
+      });
+      this.gridLines.push(line);
+      this.canvas.add(line);
+    }
+
+    for (let j = 0; j < height / gridSize; j++) {
+      const line = new fabric.Line([0, j * gridSize, width, j * gridSize], {
+        stroke: '#ddd',
+        selectable: false,
+        evented: false,
+      });
+      this.gridLines.push(line);
+      this.canvas.add(line);
+    }
+
+    // Initial setup to make grid invisible
+    this.toggleGridVisibility();
+  }
+
+  // Toggle grid visibility
+  toggleGrid() {
+    this.gridVisible = !this.gridVisible;
+    this.toggleGridVisibility();
+  }
+
+  // Update visibility of each grid line
+  private toggleGridVisibility() {
+    this.gridLines.forEach(line => line.visible = this.gridVisible);
+    this.canvas!.renderAll();
   }
 
   // Adjust zoom level based on mouse wheel interaction

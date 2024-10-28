@@ -68,7 +68,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Initialize the canvas
   private initializeCanvas() {
-    this.fabricCanvasService.initializeCanvas('fabricCanvas', 640, 640);
+    this.fabricCanvasService.initializeCanvas('fabricCanvas');
     this.canvas = this.fabricCanvasService.getCanvas();
   }
 
@@ -504,7 +504,10 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   // Mouse hovers over a rectangle, displaying the tooltip
   private handleRectangleMouseOver(rect: fabric.Rect) {
     // Update target stroke style
-    rect.set({ stroke: 'white', strokeWidth: 2 });
+    rect.set({
+      stroke: 'rgba(255, 255, 255, 0.8)',
+      strokeWidth: 1,
+    });
 
     // Retrieve object position and dimensions
     const { left, top, width, height } = rect.getBoundingRect();
@@ -648,6 +651,11 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     this.fabricCanvasService.moveCanvas(directionX, directionY);
   }
   
+  // Toggle grid visibility
+  toggleGrid() {
+    this.fabricCanvasService.toggleGrid();
+  }
+
   // Select an obstacle from the list and set it as active on the canvas
   selectObstacle(obstacleId: number) {
     const rect = this.obstacleMap.get(obstacleId) || null;
