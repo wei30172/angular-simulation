@@ -1,0 +1,11 @@
+.toggle-obstacles {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #333;
+
+  input[type='checkbox'] {
+    margin-right: 8px;
+    cursor: pointer;
+  }
+}

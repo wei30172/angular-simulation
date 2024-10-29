@@ -1,0 +1,19 @@
+.controls-container {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.canvas-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  
+  #konvaCanvas, #fabricCanvas {
+    border: 1px solid black;
+    width: 640px;
+    height: 640px;
+    display: block;
+  }
+}

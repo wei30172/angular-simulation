@@ -4,6 +4,7 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ObstacleTestingModule } from './features/obstacle-testing/obstacle-testing.module';
+import { HeatmapTestingModule } from './features/heatmap-testing/heatmap-testing.module';
 
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
 
@@ -16,6 +17,7 @@ import { SidebarComponent } from './layout/sidebar/sidebar.component';
     BrowserModule,
     AppRoutingModule,
     ObstacleTestingModule,
+    HeatmapTestingModule
   ],
   providers: [],
   bootstrap: [AppComponent]

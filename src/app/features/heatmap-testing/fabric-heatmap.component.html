@@ -1,0 +1,28 @@
+<div class="controls-container">
+  <!-- Zoom Controls -->
+  <app-zoom-controls 
+  (zoomIn)="zoomIn()" 
+  (zoomOut)="zoomOut()" 
+  (moveUp)="moveUp()" 
+  (moveLeft)="moveLeft()" 
+  (moveRight)="moveRight()" 
+  (moveDown)="moveDown()" 
+  (resetZoom)="resetZoom()" 
+  (toggleGrid)="toggleGrid()">
+  </app-zoom-controls>
+
+  <!-- Toggle Obstacle -->
+  <app-toggle-obstacles
+    [obstacleVisible]="obstacleVisible"
+    (visibilityChange)="toggleObstaclesVisibility($event)"
+  >
+  </app-toggle-obstacles>
+</div>
+
+<div class="canvas-container">
+  <!-- Fabric Canvas -->
+  <canvas id="fabricCanvas"></canvas>
+
+  <!-- Tooltip Component -->
+  <app-tooltip></app-tooltip>
+</div>

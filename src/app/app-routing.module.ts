@@ -4,11 +4,15 @@ import { Routes, RouterModule } from '@angular/router';
 import { FabricObstacleComponent } from './features/obstacle-testing/fabric-obstacle.component';
 import { KonvaObstacleComponent } from './features/obstacle-testing/konva-obstacle.component';
 import { Obstacle3DComponent } from './features/obstacle-testing/obstacle-3d.component';
+import { FabricHeatmapComponent } from './features/heatmap-testing/fabric-heatmap.component';
+import { KonvaHeatmapComponent } from './features/heatmap-testing/konva-heatmap.component';
 
 const routes: Routes = [
   { path: 'fabric-obstacle', component: FabricObstacleComponent },
   { path: 'konva-obstacle', component: KonvaObstacleComponent },
-  { path: '3d-obstacle', component: Obstacle3DComponent },
+  { path: 'obstacle-3d', component: Obstacle3DComponent },
+  { path: 'fabric-heatmap', component: FabricHeatmapComponent },
+  { path: 'konva-heatmap', component: KonvaHeatmapComponent },
   { path: '', redirectTo: '/fabric-obstacle', pathMatch: 'full' },
 ];
 

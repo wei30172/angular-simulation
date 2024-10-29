@@ -16,7 +16,7 @@ import { TooltipComponent } from 'src/app/components/tooltip/tooltip.component';
     ZoomControlsComponent,
     ObstacleListComponent,
     DeleteIconComponent,
-    TooltipComponent
+    TooltipComponent,
   ],
   imports: [
     CommonModule,
@@ -28,7 +28,7 @@ import { TooltipComponent } from 'src/app/components/tooltip/tooltip.component';
     ZoomControlsComponent,
     ObstacleListComponent,
     DeleteIconComponent,
-    TooltipComponent
+    TooltipComponent,
   ]
 })
 export class ObstacleComponentsModule { }
