@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { fabric } from 'fabric';
 
-import { ObstacleService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
+import { ObstacleGenerationService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
 import { ObstacleFormService } from 'src/app/services/obstacle-testing//obstacle-form.service';
 import { CanvasState, CanvasStateManager } from 'src/app/services/obstacle-testing/canvas-state-manager';
 import { FabricCanvasService } from 'src/app/services/obstacle-testing/fabric-canvas.service';
@@ -39,7 +39,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   private canvasStateManager = new CanvasStateManager();
 
   constructor(
-    private obstacleService: ObstacleService,
+    private obstacleService: ObstacleGenerationService,
     private obstacleFormService: ObstacleFormService,
     private fabricCanvasService: FabricCanvasService,
     private tooltipService: TooltipService,
@@ -57,9 +57,9 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Remove all event listeners
-    this.canvas.off();
-    this.fabricCanvasService.clearAllObjectEvents();
+    if (this.canvas) {
+      this.fabricCanvasService.clearService();
+    }
 
     // Unsubscribe from all observables
     this.destroy$.next();
@@ -103,8 +103,6 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
     // Handle zoom in/out using the mouse wheel
     this.canvas.on('mouse:wheel', (event) => this.handleMouseWheel(event));
-
-    this.canvas.renderAll(); // Initial rendering
   }
 
   // Handle when an object is selected
@@ -408,6 +406,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     });
 
     this.removeOldObstacles(currentObstacles); // Remove old obstacles not in the new data
+    this.canvas.requestRenderAll();
   }
 
   // Update a rectangle with the new obstacle properties
@@ -418,12 +417,6 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   // Add a new obstacle to the canvas
   private addNewObstacleToCanvas(obstacle: Obstacle) {
     const rect = this.createRectangle(obstacle);
-    rect.set({
-      selectable: true,
-      evented: true,
-      hasControls: true,
-      hasBorders: true,
-    });
     this.obstacleMap.set(obstacle.id, rect);
     this.canvas.add(rect);
   }
@@ -438,6 +431,8 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
       fill: obstacle.color || this.DEFAULT_COLOR,
       selectable: true,
       evented: true,
+      hasControls: true,
+      hasBorders: true,
     });
 
     this.addRectangleEventListeners(rect, obstacle.id);

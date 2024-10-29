@@ -5,7 +5,7 @@ import { BehaviorSubject } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
-export class ObstacleService {
+export class ObstacleGenerationService {
   private obstaclesSubject = new BehaviorSubject<Obstacle[]>([]);
   public obstacles$ = this.obstaclesSubject.asObservable();
   

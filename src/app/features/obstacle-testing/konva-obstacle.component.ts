@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import Konva from 'konva';
 
-import { ObstacleService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
+import { ObstacleGenerationService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
 import { ObstacleFormService } from 'src/app/services/obstacle-testing//obstacle-form.service';
 import { CanvasState, CanvasStateManager } from 'src/app/services/obstacle-testing/canvas-state-manager';
 import { KonvaCanvasService } from 'src/app/services/obstacle-testing/konva-canvas.service';
@@ -41,7 +41,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   private canvasStateManager = new CanvasStateManager();
 
   constructor(
-    private obstacleService: ObstacleService,
+    private obstacleService: ObstacleGenerationService,
     private obstacleFormService: ObstacleFormService,
     private konvaCanvasService: KonvaCanvasService,
     private tooltipService: TooltipService,
@@ -59,12 +59,9 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Remove all event listeners
-    this.stage.off();
-    this.konvaCanvasService.clearAllObjectEvents();
-
-    // Destroy the Konva stage
-    this.stage.destroy();
+    if (this.stage) {
+      this.konvaCanvasService.clearService();
+    }
 
     // Unsubscribe from all observables
     this.destroy$.next();

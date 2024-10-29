@@ -1,14 +1,21 @@
 import { Injectable } from '@angular/core';
 import { fabric } from 'fabric';
 
+enum CanvasSettings {
+  MinZoom = 0.2,
+  MaxZoom = 20,
+  PanOffset = 20,
+  ScaleBy = 1.05,
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class FabricCanvasService {
   // Store the canvas and layer instance
   private canvas: fabric.Canvas | null = null;
-  private gridVisible = false;
   private gridLines: fabric.Line[] = [];
+  private gridVisible = false;
   
   // Map to track objects and their events
   private objectEventMap: Map<fabric.Object, Map<string, (event: fabric.IEvent) => void>> = new Map();
@@ -17,10 +24,6 @@ export class FabricCanvasService {
   private readonly DEFAULT_GRID_SIZE = 20;
   private readonly DEFAULT_WIDTH = 640;
   private readonly DEFAULT_HEIGHT = 640;
-  private readonly MIN_ZOOM = 1;
-  private readonly MAX_ZOOM = 20;
-  private readonly PAN_OFFSET = 10;
-  private readonly SCALE_BY = 1.05;
 
   // Initialize the canvas with optional grid size, width, and height
   initializeCanvas(
@@ -32,7 +35,7 @@ export class FabricCanvasService {
     this.canvas = new fabric.Canvas(canvasId, { width, height });
     this.createGrid(gridSize);
   }
-
+  
   // Get the canvas instance
   getCanvas(): fabric.Canvas | null {
     return this.canvas;
@@ -52,10 +55,11 @@ export class FabricCanvasService {
     // , { crossOrigin: 'anonymous' } // Handle cross-origin
     );
   }
-  
+
   // Create grid lines based on grid size
   private createGrid(gridSize: number) {
     if (!this.canvas) return;
+    
     const width = this.canvas.getWidth();
     const height = this.canvas.getHeight();
 
@@ -81,27 +85,31 @@ export class FabricCanvasService {
     }
 
     // Initial setup to make grid invisible
-    this.toggleGridVisibility();
+    this.toggleObjectVisibility(this.gridLines, this.gridVisible);
+  }
+
+  // Toggle layer visibility
+  toggleObjectVisibility(elements: fabric.Object[] | fabric.Object, isVisible: boolean) {
+    if (Array.isArray(elements)) {
+      elements.forEach(element => element.visible = isVisible);
+    } else {
+      elements.visible = isVisible;
+    }
+    this.canvas?.renderAll();
   }
 
   // Toggle grid visibility
   toggleGrid() {
     this.gridVisible = !this.gridVisible;
-    this.toggleGridVisibility();
+    this.toggleObjectVisibility(this.gridLines, this.gridVisible);
   }
-
-  // Update visibility of each grid line
-  private toggleGridVisibility() {
-    this.gridLines.forEach(line => line.visible = this.gridVisible);
-    this.canvas!.renderAll();
-  }
-
+  
   // Adjust zoom level based on mouse wheel interaction
   adjustMouseWheelZoom(
     wheelEvent: WheelEvent,
-    minZoom: number = this.MIN_ZOOM,
-    maxZoom: number = this.MAX_ZOOM,
-    scaleBy: number = this.SCALE_BY // smooths the zooming effect
+    minZoom: number = CanvasSettings.MinZoom,
+    maxZoom: number = CanvasSettings.MaxZoom,
+    scaleBy: number = CanvasSettings.ScaleBy // smooths the zooming effect
   ) {
     if (!this.canvas) return;
 
@@ -130,8 +138,8 @@ export class FabricCanvasService {
   // Adjust the zoom level
   adjustZoom(
     factor: number,
-    minZoom: number = this.MIN_ZOOM,
-    maxZoom: number = this.MAX_ZOOM
+    minZoom: number = CanvasSettings.MinZoom,
+    maxZoom: number = CanvasSettings.MaxZoom
   ) {
     if (!this.canvas) return;
 
@@ -149,8 +157,8 @@ export class FabricCanvasService {
     if (!this.canvas) return;
 
     // Apply PAN_OFFSET based on direction
-    const offsetX = directionX * this.PAN_OFFSET;
-    const offsetY = directionY * this.PAN_OFFSET;
+    const offsetX = directionX * CanvasSettings.PanOffset;
+    const offsetY = directionY * CanvasSettings.PanOffset;
 
     this.canvas.relativePan({ x: offsetX, y: offsetY });
     this.canvas.renderAll();
@@ -183,5 +191,23 @@ export class FabricCanvasService {
     this.objectEventMap.forEach((_, object) => {
       this.unbindObjectEvents(object); // Unbind all events for each object
     });
+  }
+
+  // Clear listeners and canvas
+  clearService() {
+    if (this.canvas) {
+      // Remove all event listeners
+      this.canvas.off();
+      this.clearAllObjectEvents(); // Clear all custom events
+  
+      // Destroy the canvas
+      this.canvas.clear();
+      this.canvas.dispose();
+      this.canvas = null;
+    }
+
+    // Reset grid and visibility flags
+    this.gridVisible = false;
+    this.gridLines = [];
   }
 }

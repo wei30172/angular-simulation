@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import * as BABYLON from 'babylonjs';
 import { Subscription } from 'rxjs';
-import { ObstacleService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
+import { ObstacleGenerationService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
 import { Obstacle } from './obstacle.model';
 
 @Component({
@@ -22,13 +22,13 @@ export class Obstacle3DComponent implements OnInit, OnDestroy {
   private readonly GROUND_SIZE = 640; // Ground size based on 2D canvas size
   private readonly OBSTACLE_HEIGHT = 50; // Fixed height for all obstacles
 
-  constructor(private obstacleService: ObstacleService) {}
+  constructor(private obstacleService: ObstacleGenerationService) {}
 
   ngOnInit() {
     this.initBabylonEngine(); // Initialize BABYLON engine and scene
     this.loadBackgroundImage(); // Load background image as ground texture
 
-    // Subscribe to obstacles data from ObstacleService
+    // Subscribe to obstacles data from ObstacleGenerationService
     this.obstacleSubscription = this.obstacleService.obstacles$.subscribe(obstacles => {
       this.clearObstacles(); // Clear previous obstacles from the scene
       obstacles.forEach(obstacle => this.create3DObstacle(obstacle)); // Render each obstacle in 3D

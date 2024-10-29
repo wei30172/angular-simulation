@@ -1,15 +1,22 @@
 import { Injectable } from '@angular/core';
 import Konva from 'konva';
 
+enum CanvasSettings {
+  MinZoom = 0.2,
+  MaxZoom = 20,
+  PanOffset = 20,
+  ScaleBy = 1.05,
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class KonvaCanvasService {
   // Store the stage and layer instance
   private stage: Konva.Stage | null = null;
-  private gridLayer: Konva.Layer | null = null;
   private backgroundLayer: Konva.Layer | null = null;
   private obstacleLayer: Konva.Layer | null = null;
+  private gridLayer: Konva.Layer | null = null;
   private gridVisible = false;
   
   // Map to track objects and their events
@@ -19,10 +26,6 @@ export class KonvaCanvasService {
   private readonly DEFAULT_GRID_SIZE = 20;
   private readonly DEFAULT_WIDTH = 640;
   private readonly DEFAULT_HEIGHT = 640;
-  private readonly MIN_ZOOM = 1;
-  private readonly MAX_ZOOM = 20;
-  private readonly PAN_OFFSET = 10;
-  private readonly SCALE_BY = 1.05;
 
   // Initialize the stage with optional grid size, width, and height
   initializeStage(
@@ -39,7 +42,7 @@ export class KonvaCanvasService {
     this.obstacleLayer = new Konva.Layer();
 
     this.stage.add(this.backgroundLayer);
-    this.createGridLayer(gridSize); // Adds grid lines to gridLayer
+    this.createGridLayer(gridSize);
     this.stage.add(this.gridLayer);
     this.stage.add(this.obstacleLayer);
 
@@ -48,7 +51,7 @@ export class KonvaCanvasService {
     this.backgroundLayer.moveToBottom();
   }
 
-    // Get the stage instance
+  // Get the stage instance
   getStage(): Konva.Stage | null {
     return this.stage;
   }
@@ -57,7 +60,7 @@ export class KonvaCanvasService {
   getObstacleLayer(): Konva.Layer | null {
     return this.obstacleLayer;
   }
-
+  
   // Load background image into background layer
   loadBackgroundImage(imageUrl: string, onLoadCallback?: () => void) {
     if (!this.stage) {
@@ -82,7 +85,7 @@ export class KonvaCanvasService {
   // Create grid layer based on grid size
   private createGridLayer(gridSize: number) {
     if (!this.stage) return;
-    this.gridLayer = new Konva.Layer();
+    
     const width = this.stage.width();
     const height = this.stage.height();
 
@@ -104,24 +107,31 @@ export class KonvaCanvasService {
     }
 
     this.gridLayer.visible(this.gridVisible);
-    this.stage.add(this.gridLayer);
+  }
+
+  // Toggle layer visibility
+  toggleLayerVisibility(layer: Konva.Layer) {
+    layer.visible(!layer.visible());
+    layer.draw();
+    this.stage!.batchDraw();
   }
 
   // Toggle grid visibility
   toggleGrid() {
-    if (!this.gridLayer) return;
-    this.gridVisible = !this.gridVisible;
-    this.gridLayer.visible(this.gridVisible);
-    this.gridLayer.draw();
-    this.stage!.batchDraw();
+    if (this.gridLayer) this.toggleLayerVisibility(this.gridLayer);
+  }
+
+  // Toggle obstacle visibility
+  toggleObstacle() {
+    if (this.obstacleLayer) this.toggleLayerVisibility(this.obstacleLayer);
   }
 
   // Adjust zoom level based on mouse wheel interaction
   adjustMouseWheelZoom(
     wheelEvent: WheelEvent,
-    minZoom: number = this.MIN_ZOOM,
-    maxZoom: number = this.MAX_ZOOM,
-    scaleBy: number = this.SCALE_BY // smooths the zooming effect
+    minZoom: number = CanvasSettings.MinZoom,
+    maxZoom: number = CanvasSettings.MaxZoom,
+    scaleBy: number = CanvasSettings.ScaleBy // smooths the zooming effect
   ) {
     if (!this.stage) return;
 
@@ -165,8 +175,8 @@ export class KonvaCanvasService {
   // Adjust the zoom level
   adjustZoom(
     factor: number,
-    minZoom: number = this.MIN_ZOOM,
-    maxZoom: number = this.MAX_ZOOM
+    minZoom: number = CanvasSettings.MinZoom,
+    maxZoom: number = CanvasSettings.MaxZoom
   ) {
     if (!this.stage) return;
 
@@ -184,8 +194,8 @@ export class KonvaCanvasService {
     if (!this.stage) return;
 
     // Apply PAN_OFFSET based on direction
-    const offsetX = directionX * this.PAN_OFFSET;
-    const offsetY = directionY * this.PAN_OFFSET;
+    const offsetX = directionX * CanvasSettings.PanOffset;
+    const offsetY = directionY * CanvasSettings.PanOffset;
 
     this.stage.position({ x: this.stage.x() + offsetX, y: this.stage.y() + offsetY });
     this.stage.batchDraw();
@@ -221,5 +231,25 @@ export class KonvaCanvasService {
     this.objectEventMap.forEach((_, object) => {
       this.unbindObjectEvents(object); // Unbind all events for each object
     });
+  }
+
+  // Clear listeners and stage
+  clearService() {
+    if (this.stage) {
+      // Remove all event listeners
+      this.stage.off();
+      this.clearAllObjectEvents(); // Clear all custom events
+      
+      // Destroy all layers and destroy the stage
+      this.stage.getLayers().forEach(layer => layer.destroy());
+      this.stage.destroy();
+      this.stage = null;
+    }
+    
+    // Reset layers and visibility flags
+    this.gridLayer = null;
+    this.backgroundLayer = null;
+    this.obstacleLayer = null;
+    this.gridVisible = false;
   }
 }
