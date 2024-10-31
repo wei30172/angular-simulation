@@ -5,11 +5,13 @@ import { HeatmapComponentsModule } from 'src/app/components/heatmap-components.m
 
 import { FabricHeatmapComponent } from './fabric-heatmap.component';
 import { KonvaHeatmapComponent } from './konva-heatmap.component';
+import { SimpleheatHeatmapComponent } from './simpleheat-heatmap.component';
 
 @NgModule({
   declarations: [
     FabricHeatmapComponent,
     KonvaHeatmapComponent,
+    SimpleheatHeatmapComponent,
   ],
   imports: [
     CommonModule,
@@ -19,6 +21,7 @@ import { KonvaHeatmapComponent } from './konva-heatmap.component';
   exports: [
     FabricHeatmapComponent,
     KonvaHeatmapComponent,
+    SimpleheatHeatmapComponent,
   ]
 })
 export class HeatmapTestingModule { }

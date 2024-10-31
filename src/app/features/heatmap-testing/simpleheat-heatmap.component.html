@@ -1,0 +1,14 @@
+<div class="heatmap-container">
+  <div class="heatmap-canvas">
+    <!-- Original Simpleheat Canvas Heatmap -->
+    <h3>Simpleheat Heatmap Before Conversion</h3>
+    <canvas #simpleHeatCanvas id="simpleHeatCanvas"></canvas>
+  </div>
+  
+  <div class="heatmap-image">
+    <!-- Base64 Converted Image -->
+    <h3>Base64 Converted Heatmap Image</h3>
+    <img [src]="heatmapImageUrl" alt="Heatmap as Base64" *ngIf="heatmapImageUrl">
+  </div>
+</div>
+
