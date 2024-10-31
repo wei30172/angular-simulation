@@ -62,6 +62,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
     }
 
     // Unsubscribe from all observables
+    this.obstacleService.clearObstacles();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -126,10 +127,8 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Handle the rectangle selection logic and update the delete icon
   private selectAndUpdateRect(rect: fabric.Rect) {
-    if (this.currentRect !== rect) {
-      this.currentRect = rect;
-      this.currentId = this.getObstacleIdByRect(rect);
-    }
+    this.currentRect = rect;
+    this.currentId = this.getObstacleIdByRect(rect);
 
     this.updateDeleteIconPosition(rect);
 

@@ -134,4 +134,9 @@ export class ObstacleGenerationService {
     obstacles = obstacles.filter(obstacle => obstacle.id !== id);
     this.obstaclesSubject.next([...obstacles]);
   }
+
+  // Clear current obstacles data
+  clearObstacles(): void {
+    this.obstaclesSubject.next([]);
+  }
 }

@@ -64,6 +64,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     }
 
     // Unsubscribe from all observables
+    this.obstacleService.clearObstacles();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -123,10 +124,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.transformer.moveToTop();
     rect.moveToTop();
 
-    if (this.currentRect !== rect) {
-      this.currentRect = rect;
-      this.currentId = this.getObstacleIdByRect(rect);
-    }
+    this.currentRect = rect;
+    this.currentId = this.getObstacleIdByRect(rect);
 
     this.updateDeleteIconPosition(rect);
 
@@ -354,15 +353,15 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   // Subscribe to obstacle updates from the service
   private subscribeToObstacles() {
     this.obstacleService.obstacles$
-    .pipe(
-      takeUntil(this.destroy$),
-      debounceTime(100), // Debounce to avoid too frequent updates
-      distinctUntilChanged() // Ensure updates only when data changes
-    )
-    .subscribe((newObstacles) => {
-      this.updateObstacles(newObstacles); // Update obstacle list
-      this.obstacleList = newObstacles;
-    });
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(100), // Debounce to avoid too frequent updates
+        distinctUntilChanged() // Ensure updates only when data changes
+      )
+      .subscribe((newObstacles) => {
+        this.updateObstacles(newObstacles); // Update obstacle list
+        this.obstacleList = newObstacles;
+      });
   }
 
   // Update obstacles on the canvas
