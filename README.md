@@ -1,6 +1,26 @@
 # AngularSimulation
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.1.4.
+Under Construction......
+This project simulates performance testing for obstacle generation, rendering, heatmap integration, and PDF generation. Built with Angular 9.1.4, it leverages libraries such as Konva.js and Fabric.js to analyze and compare performance metrics.
+
+## Project Overview
+The AngularSimulation project is focused on performance evaluation across the following areas:
+
+1. Obstacle Simulation
+
+Simulates obstacle generation, rendering, drag interactions, zoom, and position and color changes.
+
+2. Heatmap Rendering
+
+Tests rendering speed for heatmap layers integrated with obstacle display, using libraries such as simpleheat.
+
+3. PDF Generation
+
+Simulates PDF generation performance with datasets, testing libraries such as jsPDF, pdf-lib, and pdfmake.
+
+4. Performance Monitoring
+
+Includes a custom Angular service and decorator to track metrics like load time, memory usage, and interaction delays.
 
 ## Development server
 
