@@ -1,11 +1,13 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import Konva from 'konva';
 
 import { ObstacleGenerationService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
 import { KonvaCanvasService } from 'src/app/services/obstacle-testing/konva-canvas.service';
 import { TooltipService } from 'src/app/services/obstacle-testing/tooltip.service';
+import { HeatmapDataService } from 'src/app/services/heatmap-testing/heatmap-data.service';
+import { SimpleheatService } from 'src/app/services/heatmap-testing/simpleheat.service';
 import { Obstacle } from 'src/app/features/obstacle-testing/obstacle.model';
 
 @Component({
@@ -14,8 +16,11 @@ import { Obstacle } from 'src/app/features/obstacle-testing/obstacle.model';
   styleUrls: ['./heatmap.component.scss']
 })
 export class KonvaHeatmapComponent implements OnInit, OnDestroy {
+  @ViewChild('simpleHeatCanvas', { static: true }) simpleHeatCanvas!: ElementRef<HTMLCanvasElement>;
+  
   // Constants for canvas behavior
   private readonly DEFAULT_COLOR = '#00FFFF';
+  private readonly HEATMAP_DATA_COUNT = 100;
   private readonly OBSTACLE_COUNT = 20;
 
   obstacleList: Obstacle[] = []; // Stores obstacle objects
@@ -29,6 +34,8 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
     private obstacleService: ObstacleGenerationService,
     private konvaCanvasService: KonvaCanvasService,
     private tooltipService: TooltipService,
+    private heatmapDataService: HeatmapDataService,
+    private simpleheatService: SimpleheatService
   ) {}
 
   ngOnInit() {
@@ -38,12 +45,17 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
     this.subscribeToObstacles(); // Subscribe to obstacle data
   }
 
+  ngAfterViewInit() {
+    this.renderHeatmapWithSimpleheat(); // Render heatmap
+  }
+
   ngOnDestroy() {
     if (this.stage) {
       this.konvaCanvasService.clearService();
     }
 
     // Unsubscribe from all observables
+    this.obstacleService.clearObstacles();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -72,6 +84,38 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
     );
   }
 
+  // Render heatmap using SimpleheatService
+  private renderHeatmapWithSimpleheat() {
+    const heatmapCanvas = this.simpleHeatCanvas.nativeElement;
+
+    // Ensure the heatmap canvas matches the stage dimensions
+    heatmapCanvas.width = this.stage.width();
+    heatmapCanvas.height = this.stage.height();
+
+    // Generate heatmap data that covers the entire stage area
+    const heatmapData = this.heatmapDataService.generateHeatmapData(
+      this.HEATMAP_DATA_COUNT,
+      this.stage.width(),
+      this.stage.height()
+    );
+    
+    // Initialize Simpleheat on the heatmap canvas
+    this.simpleheatService.initializeHeatmap(heatmapCanvas);
+
+    // Format data for Simpleheat
+    const formattedData = heatmapData.map((point) => [point.x, point.y, point.value] as [number, number, number]);
+    
+    // Render the heatmap to the canvas
+    this.simpleheatService.setHeatmapData(formattedData);
+    this.simpleheatService.render();
+
+    // Convert the heatmap canvas to a PNG image URL
+    const heatmapImageUrl = this.simpleHeatCanvas.nativeElement.toDataURL('image/png');
+    
+    // Add the generated heatmap as a layer to the Konva stage
+    this.konvaCanvasService.addHeatmapLayer(heatmapImageUrl);
+  }
+  
   // Bind the canvas interaction events
   private bindCanvasEvents() {
     this.stage.on('wheel', (event: Konva.KonvaEventObject<WheelEvent>) => this.handleMouseWheel(event));
@@ -89,17 +133,16 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
   // Subscribe to obstacle updates from the service
   private subscribeToObstacles() {
     this.obstacleService.obstacles$
-    .pipe(
-      takeUntil(this.destroy$),
-      debounceTime(100),
-      distinctUntilChanged()
-    )
-    .subscribe((newObstacles) => {
-      this.updateObstacles(newObstacles); // Update obstacle list
-      this.obstacleList = newObstacles;
-    });
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((newObstacles) => {
+        this.updateObstacles(newObstacles); // Update obstacle list
+        this.obstacleList = newObstacles;
+      });
   }
-
+  
   // Update obstacles on the canvas
   private updateObstacles(newObstacles: Obstacle[]) {
     this.obstacleList = newObstacles;

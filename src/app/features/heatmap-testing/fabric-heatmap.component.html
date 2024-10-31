@@ -10,7 +10,7 @@
   (resetZoom)="resetZoom()" 
   (toggleGrid)="toggleGrid()">
   </app-zoom-controls>
-
+  
   <!-- Toggle Obstacle -->
   <app-toggle-obstacles
     [obstacleVisible]="obstacleVisible"
@@ -22,6 +22,9 @@
 <div class="canvas-container">
   <!-- Fabric Canvas -->
   <canvas id="fabricCanvas"></canvas>
+  
+  <!-- Simpleheat Canvas -->
+  <canvas #simpleHeatCanvas id="simpleHeatCanvas" style="display: none;"></canvas>
 
   <!-- Tooltip Component -->
   <app-tooltip></app-tooltip>

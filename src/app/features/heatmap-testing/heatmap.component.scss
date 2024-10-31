@@ -9,11 +9,15 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  gap: 8px;
   
-  #konvaCanvas, #fabricCanvas {
+  #konvaCanvas, #fabricCanvas, #simpleHeatCanvas {
     border: 1px solid black;
     width: 640px;
     height: 640px;
+  }
+
+  #konvaCanvas, #fabricCanvas {
     display: block;
   }
 }

@@ -1,11 +1,13 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil, distinctUntilChanged, debounceTime } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { fabric } from 'fabric';
 
 import { ObstacleGenerationService } from 'src/app/services/obstacle-testing/obstacle-generation.service';
 import { FabricCanvasService } from 'src/app/services/obstacle-testing/fabric-canvas.service';
 import { TooltipService } from 'src/app/services/obstacle-testing/tooltip.service';
+import { HeatmapDataService } from 'src/app/services/heatmap-testing/heatmap-data.service';
+import { SimpleheatService } from 'src/app/services/heatmap-testing/simpleheat.service';
 import { Obstacle } from 'src/app/features/obstacle-testing/obstacle.model';
 
 @Component({
@@ -14,8 +16,11 @@ import { Obstacle } from 'src/app/features/obstacle-testing/obstacle.model';
   styleUrls: ['./heatmap.component.scss']
 })
 export class FabricHeatmapComponent implements OnInit, OnDestroy {
+  @ViewChild('simpleHeatCanvas', { static: true }) simpleHeatCanvas!: ElementRef<HTMLCanvasElement>;
+  
   // Constants for canvas behavior
   private readonly DEFAULT_COLOR = '#00FFFF';
+  private readonly HEATMAP_DATA_COUNT = 100;
   private readonly OBSTACLE_COUNT = 20;
   
   obstacleList: Obstacle[] = [];
@@ -29,6 +34,8 @@ export class FabricHeatmapComponent implements OnInit, OnDestroy {
     private obstacleService: ObstacleGenerationService,
     private fabricCanvasService: FabricCanvasService,
     private tooltipService: TooltipService,
+    private heatmapDataService: HeatmapDataService,
+    private simpleheatService: SimpleheatService,
   ) {}
 
   ngOnInit() {
@@ -38,12 +45,17 @@ export class FabricHeatmapComponent implements OnInit, OnDestroy {
     this.subscribeToObstacles(); // Subscribe to obstacle data
   }
 
+  ngAfterViewInit() {
+    this.renderHeatmapWithSimpleheat(); // Render heatmap
+  }
+
   ngOnDestroy() {
     if (this.canvas) {
       this.fabricCanvasService.clearService();
     }
     
     // Unsubscribe from all observables
+    this.obstacleService.clearObstacles();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -70,6 +82,38 @@ export class FabricHeatmapComponent implements OnInit, OnDestroy {
       this.canvas.height
     );
   }
+  
+  // Render heatmap using SimpleheatService
+  private renderHeatmapWithSimpleheat() {
+    const heatmapCanvas = this.simpleHeatCanvas.nativeElement;
+
+    // Ensure the heatmap canvas matches the canvas dimensions
+    heatmapCanvas.width = this.canvas.width;
+    heatmapCanvas.height = this.canvas.height;
+
+    // Generate heatmap data that covers the entire canvas area
+    const heatmapData = this.heatmapDataService.generateHeatmapData(
+      this.HEATMAP_DATA_COUNT,
+      this.canvas.width,
+      this.canvas.height
+    );
+    
+    // Initialize heatmap instance
+    this.simpleheatService.initializeHeatmap(heatmapCanvas);
+
+    // Format data for Simpleheat
+    const formattedData = heatmapData.map((point) => [point.x, point.y, point.value] as [number, number, number]);
+    this.simpleheatService.setHeatmapData(formattedData);
+
+    // Render the heatmap to the canvas
+    this.simpleheatService.render();
+
+    // Convert the heatmap canvas to a PNG image URL
+    const heatmapImageUrl = heatmapCanvas.toDataURL('image/png');
+
+    // Add the generated heatmap as a fabric.Image to the Fabric canvas
+    this.fabricCanvasService.addHeatmapLayer(heatmapImageUrl);
+  }
 
   // Bind canvas events for interaction
   private bindCanvasEvents() {
@@ -91,8 +135,7 @@ export class FabricHeatmapComponent implements OnInit, OnDestroy {
     this.obstacleService.obstacles$
       .pipe(
         takeUntil(this.destroy$),
-        debounceTime(100), // Debounce to avoid too frequent updates
-        distinctUntilChanged() // Ensure updates only when data changes
+        distinctUntilChanged()
       )
       .subscribe((newObstacles) => {
         this.updateObstacles(newObstacles); // Update obstacle list

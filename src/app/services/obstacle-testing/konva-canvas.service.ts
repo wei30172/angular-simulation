@@ -16,6 +16,7 @@ export class KonvaCanvasService {
   private stage: Konva.Stage | null = null;
   private backgroundLayer: Konva.Layer | null = null;
   private obstacleLayer: Konva.Layer | null = null;
+  private heatmapLayer: Konva.Layer | null = null;
   private gridLayer: Konva.Layer | null = null;
   private gridVisible = false;
   
@@ -38,17 +39,20 @@ export class KonvaCanvasService {
 
     // Initialize background, grid, and obstacle layers
     this.backgroundLayer = new Konva.Layer();
-    this.gridLayer = new Konva.Layer();
     this.obstacleLayer = new Konva.Layer();
+    this.heatmapLayer = new Konva.Layer();
+    this.gridLayer = new Konva.Layer();
 
     this.stage.add(this.backgroundLayer);
     this.createGridLayer(gridSize);
     this.stage.add(this.gridLayer);
+    this.stage.add(this.heatmapLayer);
     this.stage.add(this.obstacleLayer);
 
-    // Ensure grid layer is just above background
+    // backgroundLayer -> gridLayer -> heatmapLayer -> obstacleLayer
     this.gridLayer.moveToBottom();
     this.backgroundLayer.moveToBottom();
+    this.heatmapLayer.moveDown();
   }
 
   // Get the stage instance
@@ -71,12 +75,12 @@ export class KonvaCanvasService {
     // image.crossOrigin = 'anonymous'; // Handle cross-origin
     image.src = imageUrl;
     image.onload = () => {
-      const konvaImage = new Konva.Image({
+      const konvaBackgroundImage = new Konva.Image({
         image: image,
         width: this.stage!.width(),
         height: this.stage!.height(),
       });
-      this.backgroundLayer!.add(konvaImage);
+      this.backgroundLayer!.add(konvaBackgroundImage);
       this.backgroundLayer!.draw();
       if (onLoadCallback) onLoadCallback(); // Execute callback when the image is loaded
     };
@@ -84,7 +88,9 @@ export class KonvaCanvasService {
 
   // Create grid layer based on grid size
   private createGridLayer(gridSize: number) {
-    if (!this.stage) return;
+    if (!this.gridLayer) {
+      throw new Error('Grid layer is not initialized.');
+    }
     
     const width = this.stage.width();
     const height = this.stage.height();
@@ -201,6 +207,31 @@ export class KonvaCanvasService {
     this.stage.batchDraw();
   }
 
+  // Add heatmap layer
+  addHeatmapLayer(imageUrl: string) {
+    if (!this.heatmapLayer) {
+      throw new Error('Heatmap layer is not initialized.');
+    }
+
+    const heatmapImage = new Image();
+    heatmapImage.src = imageUrl;
+    heatmapImage.onload = () => {
+      const konvaHeatmapImage = new Konva.Image({
+        image: heatmapImage,
+        width: this.stage!.width(),  // Set the width to match the stage width
+        height: this.stage!.height(), // Set the height to match the stage height
+        opacity: 0.8,
+      });
+
+      // Clear previous heatmap images
+      this.heatmapLayer!.destroyChildren();
+      
+      // Add the heatmap image to the heatmap layer
+      this.heatmapLayer!.add(konvaHeatmapImage);
+      this.heatmapLayer!.draw();
+    };
+  }
+
   // Bind events to the object and track them
   bindObjectEvents(
     object: Konva.Node,
@@ -247,9 +278,10 @@ export class KonvaCanvasService {
     }
     
     // Reset layers and visibility flags
-    this.gridLayer = null;
     this.backgroundLayer = null;
     this.obstacleLayer = null;
+    this.heatmapLayer = null;
+    this.gridLayer = null;
     this.gridVisible = false;
   }
 }

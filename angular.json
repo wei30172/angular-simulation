@@ -28,10 +28,11 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/leaflet/dist/leaflet.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/heatmap.js/build/heatmap.min.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -94,10 +95,11 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/leaflet/dist/leaflet.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/heatmap.js/build/heatmap.min.js"
+            ]
           }
         },
         "lint": {

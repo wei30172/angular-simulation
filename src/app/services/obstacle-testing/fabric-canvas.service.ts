@@ -14,6 +14,7 @@ enum CanvasSettings {
 export class FabricCanvasService {
   // Store the canvas and layer instance
   private canvas: fabric.Canvas | null = null;
+  private heatmapLayer: fabric.Image | null = null;
   private gridLines: fabric.Line[] = [];
   private gridVisible = false;
   
@@ -49,6 +50,8 @@ export class FabricCanvasService {
 
     fabric.Image.fromURL(imageUrl, (img) => {
       img.scaleToWidth(this.canvas.getWidth());
+      img.scaleToHeight(this.canvas.getHeight());
+      
       this.canvas.setBackgroundImage(img, this.canvas.renderAll.bind(this.canvas)); // Set background image and render canvas
       if (onLoadCallback) onLoadCallback(); // Execute callback when the image is loaded
     }
@@ -164,6 +167,37 @@ export class FabricCanvasService {
     this.canvas.renderAll();
   }
 
+  // Add heatmap layer
+  addHeatmapLayer(imageUrl: string) {
+    if (!this.canvas) return;
+
+    // Load the heatmap image from the provided URL
+    fabric.Image.fromURL(imageUrl, (heatmapImage) => {
+      // Scale the heatmap image to fit the entire canvas width and height
+      heatmapImage.scaleToWidth(this.canvas.getWidth());
+      heatmapImage.scaleToHeight(this.canvas.getHeight());
+
+      // Set image properties
+      heatmapImage.set({
+        left: 0,
+        top: 0,
+        opacity: 0.8,
+        selectable: false,
+        evented: false,
+      });
+      
+      // Remove the previous heatmap layer if it exists
+      if (this.heatmapLayer) {
+        this.canvas.remove(this.heatmapLayer);
+      }
+      // Insert the heatmap image at the second layer position
+      // (above the background but below other elements)
+      this.canvas.insertAt(heatmapImage, 1, true);
+      this.heatmapLayer = heatmapImage;
+      this.canvas.renderAll();
+    });
+  }
+
   // Bind events to the object and track them
   bindObjectEvents(object: fabric.Object, events: { [key: string]: (event: fabric.IEvent) => void }) {
     const eventMap = new Map<string, (event: fabric.IEvent) => void>();
@@ -193,6 +227,14 @@ export class FabricCanvasService {
     });
   }
 
+  clearHeatmapLayer() {
+    if (this.heatmapLayer) {
+      this.canvas.remove(this.heatmapLayer);
+      this.heatmapLayer = null;
+      this.canvas.renderAll();
+    }
+  }
+
   // Clear listeners and canvas
   clearService() {
     if (this.canvas) {
@@ -200,6 +242,10 @@ export class FabricCanvasService {
       this.canvas.off();
       this.clearAllObjectEvents(); // Clear all custom events
   
+      if (this.heatmapLayer) {
+        this.clearHeatmapLayer();
+      }
+
       // Destroy the canvas
       this.canvas.clear();
       this.canvas.dispose();
