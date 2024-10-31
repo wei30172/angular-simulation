@@ -4,7 +4,7 @@ Under Construction......
 This project simulates performance testing for obstacle generation, rendering, heatmap integration, and PDF generation. Built with Angular 9.1.4, it leverages libraries such as Konva.js and Fabric.js to analyze and compare performance metrics.
 
 ## Project Overview
-The AngularSimulation project is focused on performance evaluation across the following areas:
+The AngularSimulation project includes the following core functionalities:
 
 1. Obstacle Simulation
 
@@ -20,7 +20,7 @@ Simulates PDF generation performance with datasets, testing libraries such as js
 
 4. Performance Monitoring
 
-Includes a custom Angular service and decorator to track metrics like load time, memory usage, and interaction delays.
+Implements a custom Angular service and decorator to track key performance metrics, such as load time, memory usage, and interaction delays across the different simulation areas.
 
 ## Development server
 
