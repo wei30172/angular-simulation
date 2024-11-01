@@ -50,14 +50,14 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.stage) {
-      this.konvaCanvasService.clearService();
-    }
-
     // Unsubscribe from all observables
     this.obstacleService.clearObstacles();
     this.destroy$.next();
     this.destroy$.complete();
+
+    if (this.stage) {
+      this.konvaCanvasService.clearService();
+    }
   }
 
   // Initialize canvas and layer
@@ -150,6 +150,7 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
     newObstacles.forEach(obstacle => {
       this.addNewObstacleToCanvas(obstacle); // Add new obstacle to the canvas
     });
+
     this.obstacleLayer.batchDraw();
   }
 

@@ -50,14 +50,14 @@ export class FabricHeatmapComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.canvas) {
-      this.fabricCanvasService.clearService();
-    }
-    
     // Unsubscribe from all observables
     this.obstacleService.clearObstacles();
     this.destroy$.next();
     this.destroy$.complete();
+
+    if (this.canvas) {
+      this.fabricCanvasService.clearService();
+    }
   }
 
   // Initialize the canvas
