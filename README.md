@@ -18,10 +18,6 @@ Tests rendering speed for heatmap layers integrated with obstacle display, using
 
 Simulates PDF generation performance with datasets, testing libraries such as jsPDF, pdf-lib, and pdfmake.
 
-4. Performance Monitoring
-
-Implements a custom Angular service and decorator to track key performance metrics, such as load time, memory usage, and interaction delays across the different simulation areas.
-
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
