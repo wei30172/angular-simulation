@@ -3,8 +3,9 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ObstacleTestingModule } from './features/obstacle-testing/obstacle-testing.module';
-import { HeatmapTestingModule } from './features/heatmap-testing/heatmap-testing.module';
+import { ObstacleTestingModule } from 'src/app/features/obstacle-testing/obstacle-testing.module';
+import { HeatmapTestingModule } from 'src/app/features/heatmap-testing/heatmap-testing.module';
+import { PdfTestingModule } from 'src/app/features/pdf-testing/pdf-testing.module';
 
 import { SidebarComponent } from './layout/sidebar/sidebar.component';
 
@@ -17,7 +18,8 @@ import { SidebarComponent } from './layout/sidebar/sidebar.component';
     BrowserModule,
     AppRoutingModule,
     ObstacleTestingModule,
-    HeatmapTestingModule
+    HeatmapTestingModule,
+    PdfTestingModule
   ],
   providers: [],
   bootstrap: [AppComponent]

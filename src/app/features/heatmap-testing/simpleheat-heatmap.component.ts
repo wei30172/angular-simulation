@@ -4,7 +4,7 @@ import { HeatmapDataService } from 'src/app/services/heatmap-testing/heatmap-dat
 import { SimpleheatService } from 'src/app/services/heatmap-testing/simpleheat.service';
 
 @Component({
-  selector: 'app-fabric-obstacle',
+  selector: 'app-simpleheat-heatmap',
   templateUrl: './simpleheat-heatmap.component.html',
   styleUrls: ['./simpleheat-heatmap.component.scss']
 })

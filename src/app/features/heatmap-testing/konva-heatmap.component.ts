@@ -11,7 +11,7 @@ import { SimpleheatService } from 'src/app/services/heatmap-testing/simpleheat.s
 import { Obstacle } from 'src/app/features/obstacle-testing/obstacle.model';
 
 @Component({
-  selector: 'app-konva-obstacle',
+  selector: 'app-konva-heatmap>',
   templateUrl: './konva-heatmap.component.html',
   styleUrls: ['./heatmap.component.scss']
 })

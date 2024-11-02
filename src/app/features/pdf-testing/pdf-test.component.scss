@@ -1,0 +1,32 @@
+.pdf-test-container {
+  text-align: center;
+  margin-top: 20px;
+
+  h2 {
+    margin-bottom: 15px;
+  }
+
+  button {
+    margin: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+
+    &:nth-of-type(1) {
+      background-color: #007bff;
+      color: white;
+    }
+    
+    &:nth-of-type(2) {
+      background-color: #28a745;
+      color: white;
+    }
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+}
