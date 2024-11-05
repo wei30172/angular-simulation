@@ -139,7 +139,6 @@ export class FabricHeatmapComponent implements OnInit, OnDestroy {
       )
       .subscribe((newObstacles) => {
         this.updateObstacles(newObstacles); // Update obstacle list
-        this.obstacleList = newObstacles;
       });
   }
 

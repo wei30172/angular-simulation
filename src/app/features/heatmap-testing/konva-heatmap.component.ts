@@ -19,7 +19,6 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
   @ViewChild('simpleHeatCanvas', { static: true }) simpleHeatCanvas!: ElementRef<HTMLCanvasElement>;
   
   // Constants for canvas behavior
-  private readonly DEFAULT_COLOR = '#00FFFF';
   private readonly HEATMAP_DATA_COUNT = 100;
   private readonly OBSTACLE_COUNT = 20;
 
@@ -139,7 +138,6 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
       )
       .subscribe((newObstacles) => {
         this.updateObstacles(newObstacles); // Update obstacle list
-        this.obstacleList = newObstacles;
       });
   }
   
@@ -148,31 +146,25 @@ export class KonvaHeatmapComponent implements OnInit, OnDestroy {
     this.obstacleList = newObstacles;
 
     newObstacles.forEach(obstacle => {
-      this.addNewObstacleToCanvas(obstacle); // Add new obstacle to the canvas
+      this.addObstacleFromData(obstacle);
     });
 
     this.obstacleLayer.batchDraw();
   }
 
-  // Add a new obstacle to the canvas
-  private addNewObstacleToCanvas(obstacle: Obstacle) {
-    const rect = this.createRectangle(obstacle);
-    this.obstacleLayer.add(rect);
-  }
-
-  // Create a new rectangle and add event handlers
-  private createRectangle(obstacle: Obstacle): Konva.Rect {
+   // Add new obstacle from data
+   private addObstacleFromData(obstacle: Obstacle) {
     const rect = new Konva.Rect({
       x: obstacle.x,
       y: obstacle.y,
       width: obstacle.width,
       height: obstacle.height,
-      fill: obstacle.color || this.DEFAULT_COLOR,
+      fill: obstacle.color,
       draggable: false,
     });
 
     this.addRectangleEventListeners(rect, obstacle.id);
-    return rect;
+    this.obstacleLayer.add(rect);
   }
 
   // Function to add event listeners to a rectangle

@@ -18,7 +18,6 @@ import { Obstacle } from './obstacle.model';
 })
 export class KonvaObstacleComponent implements OnInit, OnDestroy {
   // Constants for canvas behavior
-  private readonly DEFAULT_COLOR = '#00FFFF';
   private readonly OBSTACLE_COUNT = 20;
   private readonly MIN_DRAG_DISTANCE = 5;
 
@@ -73,19 +72,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   private initializeCanvas() {
     this.konvaCanvasService.initializeStage('konvaCanvas');
     this.stage = this.konvaCanvasService.getStage();
-
-    // Retrieve obstacle layer
     this.obstacleLayer = this.konvaCanvasService.getObstacleLayer();
-    if (this.obstacleLayer) {
-      // Initialize the transformer for the obstacle layer
-      this.transformer = new Konva.Transformer({
-        rotateEnabled: true,
-        resizeEnabled: true,
-        anchorSize: 15,
-        opacity: 0.5,
-      });
-      this.obstacleLayer.add(this.transformer);
-    }
+    this.transformer = this.konvaCanvasService.getTransformer();
   }
 
   // Load the background image for the canvas
@@ -210,7 +198,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.currentRect = null;
   }
   
- // Update the size of the rectangle as the mouse moves
+  // Update the size of the rectangle as the mouse moves
   private handleMouseMove() {
     if (!this.canvasStateManager.isDrawing()) return;
 
@@ -242,11 +230,11 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Create a new rectangle on the canvas
+  // Create a new rectangle
   private createNewRectangle() {
     const randomColor = this.obstacleService.getRandomColor();
 
-    this.currentRect = new Konva.Rect({
+    const rect = new Konva.Rect({
       x: this.startX,
       y: this.startY,
       width: 0,
@@ -255,7 +243,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
       draggable: false,
     });
 
-    this.obstacleLayer.add(this.currentRect); // Add the rectangle to the canvas
+    this.obstacleLayer.add(rect);
+    this.currentRect = rect;
   }
 
   // Finalize drawing the rectangle on mouse up
@@ -278,21 +267,19 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   
   // Finalize a new rectangle as an obstacle
   private finalizeNewObstacle() {
-    // Assign a unique ID for the new obstacle
+    // Assign new ID for the new obstacle
     const newObstacleId = Date.now();
 
     this.addRectangleEventListeners(this.currentRect, newObstacleId);
 
     // Store the new obstacle in the map
-    const obstacleColor = this.currentRect!.fill() as string;
-
     this.obstacleService.addObstacle({
       id: newObstacleId,
       x: this.currentRect.x(),
       y: this.currentRect.y(),
       width: this.currentRect.width(),
       height: this.currentRect.height(),
-      color: obstacleColor,
+      color: this.currentRect!.fill() as string,
     });
 
     this.obstacleMap.set(newObstacleId, this.currentRect);
@@ -360,7 +347,6 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
       )
       .subscribe((newObstacles) => {
         this.updateObstacles(newObstacles); // Update obstacle list
-        this.obstacleList = newObstacles;
       });
   }
 
@@ -372,45 +358,34 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     newObstacles.forEach(obstacle => {
       if (this.obstacleMap.has(obstacle.id)) {
         const rect = this.obstacleMap.get(obstacle.id)!;
-        this.updateRectangle(rect, obstacle); // Update existing rectangles
+        this.updateRectangleProperties(rect, obstacle);
         currentObstacles.delete(obstacle.id);
       } else {
-        this.addNewObstacleToCanvas(obstacle); // Add new obstacle to the canvas
+        this.addObstacleFromData(obstacle);
       }
     });
 
-    this.removeOldObstacles(currentObstacles); // Remove old obstacles not in the new data
+    this.removeOldObstacles(currentObstacles); 
     this.obstacleLayer.batchDraw();
   }
 
-  // Update a rectangle with the new obstacle properties
-  private updateRectangle(rect: Konva.Rect, obstacle: Obstacle) {
-    this.updateRectangleProperties(rect, obstacle);
-  }
-
-  // Add a new obstacle to the canvas
-  private addNewObstacleToCanvas(obstacle: Obstacle) {
-    const rect = this.createRectangle(obstacle);
-    this.obstacleMap.set(obstacle.id, rect);
-    this.obstacleLayer.add(rect);
-  }
-
-  // Create a new rectangle and add event handlers
-  private createRectangle(obstacle: Obstacle): Konva.Rect {
+  // Add new obstacle from data
+  private addObstacleFromData(obstacle: Obstacle) {
     const rect = new Konva.Rect({
       x: obstacle.x,
       y: obstacle.y,
       width: obstacle.width,
       height: obstacle.height,
-      fill: obstacle.color || this.DEFAULT_COLOR,
-      draggable: true, // Allow dragging the rectangle
+      fill: obstacle.color,
+      draggable: true,
     });
 
     this.addRectangleEventListeners(rect, obstacle.id);
-    return rect;
+    this.obstacleMap.set(obstacle.id, rect);
+    this.obstacleLayer.add(rect);
   }
 
-  // Remove old obstacles no longer present in the data
+  // Remove old obstacles not in the new data
   private removeOldObstacles(currentObstacles: Set<number>) {
     currentObstacles.forEach((id) => {
       const rect = this.obstacleMap.get(id);

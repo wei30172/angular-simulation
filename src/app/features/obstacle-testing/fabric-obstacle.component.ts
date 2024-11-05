@@ -385,7 +385,6 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
       )
       .subscribe((newObstacles) => {
         this.updateObstacles(newObstacles); // Update obstacle list
-        this.obstacleList = newObstacles;
       });
   }
 

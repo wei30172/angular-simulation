@@ -18,6 +18,7 @@ export class KonvaCanvasService {
   private obstacleLayer: Konva.Layer | null = null;
   private heatmapLayer: Konva.Layer | null = null;
   private gridLayer: Konva.Layer | null = null;
+  private transformer: Konva.Transformer | null = null;
   private gridVisible = false;
   
   // Map to track objects and their events
@@ -37,25 +38,38 @@ export class KonvaCanvasService {
   ) {
     this.stage = new Konva.Stage({ container: containerId, width, height });
 
-    // Initialize background, grid, and obstacle layers
+    // Initialize layers
     this.backgroundLayer = new Konva.Layer();
     this.obstacleLayer = new Konva.Layer();
     this.heatmapLayer = new Konva.Layer();
     this.gridLayer = new Konva.Layer();
 
+    // Add layers to the stage
     this.stage.add(this.backgroundLayer);
-    this.createGridLayer(gridSize);
     this.stage.add(this.gridLayer);
     this.stage.add(this.heatmapLayer);
     this.stage.add(this.obstacleLayer);
 
+    // Set layer order
     // backgroundLayer -> gridLayer -> heatmapLayer -> obstacleLayer
     this.gridLayer.moveToBottom();
     this.backgroundLayer.moveToBottom();
     this.heatmapLayer.moveDown();
+
+    // Initialize the transformer
+    this.transformer = new Konva.Transformer({
+      rotateEnabled: true,
+      resizeEnabled: true,
+      anchorSize: 15,
+      opacity: 0.8,
+    });
+    this.obstacleLayer.add(this.transformer);
+
+    // Create grid
+    this.createGridLayer(gridSize);
   }
 
-  // Get the stage instance
+  // Get the Konva stage instance
   getStage(): Konva.Stage | null {
     return this.stage;
   }
@@ -63,6 +77,11 @@ export class KonvaCanvasService {
   // Get the obstacle layer
   getObstacleLayer(): Konva.Layer | null {
     return this.obstacleLayer;
+  }
+
+  // Get the obstacle transformer
+  getTransformer(): Konva.Transformer | null {
+    return this.transformer;
   }
   
   // Load background image into background layer
@@ -164,7 +183,6 @@ export class KonvaCanvasService {
       y: pointer.y - mousePointTo.y * newZoom,
     };
 
-    // Zoom in/out relative to the mouse pointer position
     this.stage.position(newPos);
     this.stage.batchDraw();
   }
@@ -203,7 +221,10 @@ export class KonvaCanvasService {
     const offsetX = directionX * CanvasSettings.PanOffset;
     const offsetY = directionY * CanvasSettings.PanOffset;
 
-    this.stage.position({ x: this.stage.x() + offsetX, y: this.stage.y() + offsetY });
+    this.stage.position({
+      x: this.stage.x() + offsetX,
+      y: this.stage.y() + offsetY
+    });
     this.stage.batchDraw();
   }
 
