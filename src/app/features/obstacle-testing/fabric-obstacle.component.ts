@@ -116,7 +116,7 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
       this.handleDeselection();
       
       // Select and update the delete icon position
-      this.selectAndUpdateRect(activeObject as fabric.Rect);
+      this.selectAndUpdateRect(activeObject);
     }
   }
 
@@ -362,12 +362,13 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
 
   // Apply updated properties to the rectangle
   private updateRectangleProperties(rect: fabric.Rect, values: Partial<Obstacle>) {
+    // != null => If value is not null or undefined, use it
     const updatedProperties: Partial<fabric.Rect> = {
-      left: values.x !== undefined ? parseFloat(values.x.toString()) : rect.left,
-      top: values.y !== undefined ? parseFloat(values.y.toString()) : rect.top,
-      width: values.width !== undefined ? parseFloat(values.width.toString()) : rect.width,
-      height: values.height !== undefined ? parseFloat(values.height.toString()) : rect.height,
-      fill: values.color !== undefined ? values.color : rect.fill,
+      left: values.x != null ? parseFloat(values.x.toString()) : rect.left,
+      top: values.y != null ? parseFloat(values.y.toString()) : rect.top,
+      width: values.width != null ? parseFloat(values.width.toString()) : rect.width,
+      height: values.height != null ? parseFloat(values.height.toString()) : rect.height,
+      fill: values.color != null ? values.color : rect.fill,
     };
   
     rect.set(updatedProperties); // Update all properties at once
@@ -572,8 +573,6 @@ export class FabricObstacleComponent implements OnInit, OnDestroy {
   // Close the edit form and reset relevant variables
   closeEditForm() {
     this.showPopup = false;
-    this.currentRect = null;
-    this.currentId = null;
     this.originalValues = null;
 
     // Reset the form

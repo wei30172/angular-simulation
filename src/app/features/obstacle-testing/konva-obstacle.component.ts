@@ -325,12 +325,13 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
   // Set the rectangle properties
   private updateRectangleProperties(rect: Konva.Rect, values: Partial<Obstacle>) {
+    // != null => If value is not null or undefined, use it
     const updatedProperties = {
-      x: values.x !== undefined ? parseFloat(values.x.toString()) : rect.x(),
-      y: values.y !== undefined ? parseFloat(values.y.toString()) : rect.y(),
-      width: values.width !== undefined ? parseFloat(values.width.toString()) : rect.width(),
-      height: values.height !== undefined ? parseFloat(values.height.toString()) : rect.height(),
-      fill: values.color !== undefined ? values.color : rect.fill(),
+      x: values.x != null ? parseFloat(values.x.toString()) : rect.x(),
+      y: values.y != null ? parseFloat(values.y.toString()) : rect.y(),
+      width: values.width != null ? parseFloat(values.width.toString()) : rect.width(),
+      height: values.height != null ? parseFloat(values.height.toString()) : rect.height(),
+      fill: values.color != null ? values.color : rect.fill(),
     };
 
     rect.setAttrs(updatedProperties); // Update all properties at once
@@ -448,7 +449,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.handleDeselection();
     
     // Select and update the delete icon position
-    this.selectAndUpdateRect(rect as Konva.Rect);
+    this.selectAndUpdateRect(rect);
   }
 
   // Update size after the transformation (resizing)
@@ -480,8 +481,8 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
 
     this.canvasStateManager.setState(CanvasState.Idle);
     
-    // Re-select the current rectangle and show the delete icon
-    this.selectAndUpdateRect(rect);
+    this.updateDeleteIconPosition(rect);
+    this.obstacleLayer.draw();
   }
 
   // Mouse hovers over a rectangle, displaying the tooltip
@@ -563,8 +564,6 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
   // Close the popup form
   closeEditForm() {
     this.showPopup = false;
-    this.currentRect = null;
-    this.currentId = null;
     this.originalValues = null;
 
     // Reset the form
@@ -640,7 +639,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     this.konvaCanvasService.toggleGrid();
   }
 
-   // Select an obstacle from the list and set it as active on the canvas
+  // Select an obstacle from the list and set it as active on the canvas
   selectObstacle(obstacleId: number) {
     const rect = this.obstacleMap.get(obstacleId) || null;
     
@@ -650,7 +649,7 @@ export class KonvaObstacleComponent implements OnInit, OnDestroy {
     }
 
     // Select and update the delete icon position
-    this.selectAndUpdateRect(rect as Konva.Rect);
+    this.selectAndUpdateRect(rect);
   }
 
   // Delete an obstacle from the canvas and the obstacle list
